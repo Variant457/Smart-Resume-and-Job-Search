@@ -1,0 +1,59 @@
+﻿# Visual Studio
+.vs/
+*.suo
+*.wsuo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+
+# Build output
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+
+# Configs generated per-machine
+*.dbmdl
+*.jfm
+*.vsp
+*.psess
+*.vspx
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+packages/
+*.nupkg
+# If using PackageReference, packages/ won't exist; harmless to ignore
+
+# Rider/VS Code
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MAUI / Android specifics
+*.keystore
+*.jks
+*.apk
+*.aab
+
+# Windows app packaging (MAUI/WinUI)
+AppPackages/
+BundleArtifacts/
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.msixupload
+*.pfx
+
+# Publish profiles (user-specific overrides)
+Properties/PublishProfiles/*.pubxml.user
