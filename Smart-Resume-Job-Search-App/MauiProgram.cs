@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Smart_Resume_Job_Search_App.Infrastructure;
+using Smart_Resume_Job_Search_App.Presentation;
+using Smart_Resume_Job_Search_App.UINav;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -18,6 +20,9 @@ namespace Smart_Resume_Job_Search_App
 
             var services = builder.Services;
             services.AddSingleton<INetworkStatus, NetworkStatus>();
+            services.AddSingleton<IViewModelFactory, ViewModelFactory>();
+
+            services.AddTransient<HomeViewModel>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
