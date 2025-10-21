@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Smart_Resume_Job_Search_App.Infrastructure;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -15,8 +16,10 @@ namespace Smart_Resume_Job_Search_App
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            var services = builder.Services;
+            services.AddSingleton<INetworkStatus, NetworkStatus>();
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

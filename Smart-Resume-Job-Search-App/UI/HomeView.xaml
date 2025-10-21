@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Smart_Resume_Job_Search_App.UI.HomeView"
+             x:DataType="vm:HomeViewModel"
+             xmlns:vm="clr-namespace:Smart_Resume_Job_Search_App.Presentation">
+    <ContentPage.Resources>
+        <Style TargetType="Grid" x:Key="DropZoneStyle">
+            <Setter Property="Padding" Value="24" />
+            <Setter Property="BackgroundColor" Value="DimGray" />
+            <Setter Property="HeightRequest" Value="180" />
+        </Style>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Padding="24" Spacing="20">
+        <Border
+            StrokeDashArray="4,4"
+            StrokeShape="RoundRectangle 16"
+            StrokeThickness="2"
+            Stroke="DarkGray"
+            IsEnabled="{Binding IsUploadEnabled}">
+            <Grid Style="{StaticResource DropZoneStyle}">
+                <Grid.GestureRecognizers>
+                    <DropGestureRecognizer
+                        AllowDrop="True"
+                        DragOver="OnDragOver" 
+                        Drop="OnDrop" />
+                    <TapGestureRecognizer
+                        Tapped="OnBrowseClicked" />
+                </Grid.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                    <Image Source="upload_icon.png" HeightRequest="42" WidthRequest="42" />
+                    <Label Text="Drag and drop your resume here"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" 
+                           TextColor="White" />
+                    <Label Text="or"
+                           HorizontalOptions="Center" 
+                           Opacity="0.6"
+                           TextColor="White" />
+                    <Button Text="Browse Files"
+                            Clicked="OnBrowseClicked"
+                            IsEnabled="{Binding IsUploadEnabled}"
+                            HorizontalOptions="Center" />
+                    <Label Text="Only PDF, DOCX, or TXT files are supported"
+                           FontSize="12"
+                           HorizontalOptions="Center" 
+                           Opacity="0.6"
+                           TextColor="White" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+        <Button Text="Job Search"
+                IsVisible="{Binding IsJobSearchVisible}"
+                IsEnabled="{Binding IsJobSearchEnabled}"
+                Command="{Binding StartJobSearchCommand}"
+                StyleClass="PrimaryButton"
+                HorizontalOptions="Center" />
+        <Button Text="View Saved Jobs"
+                IsVisible="{Binding IsHistoryVisible}"
+                Command="{Binding OpenHistoryCommand}"
+                StyleClass="SecondaryButton"
+                HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentPage>
