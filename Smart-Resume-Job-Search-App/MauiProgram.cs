@@ -21,6 +21,7 @@ namespace Smart_Resume_Job_Search_App
             var services = builder.Services;
             services.AddSingleton<INetworkStatus, NetworkStatus>();
             services.AddSingleton<IViewModelFactory, ViewModelFactory>();
+            services.AddSingleton<IAppFlow, AppCoordinator>();
 
             services.AddTransient<HomeViewModel>();
 #if DEBUG
