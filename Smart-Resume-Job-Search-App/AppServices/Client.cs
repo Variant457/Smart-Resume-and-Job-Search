@@ -4,7 +4,7 @@
     {
         public static void main(string[] args)
         {
-
+            var app = MauiProgram.CreateMauiApp();
         }
     }
 }
