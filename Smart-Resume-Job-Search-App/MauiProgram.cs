@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Smart_Resume_Job_Search_App.Infrastructure;
+using Smart_Resume_Job_Search_App.Presentation;
+using Smart_Resume_Job_Search_App.UINav;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -15,8 +18,14 @@ namespace Smart_Resume_Job_Search_App
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            var services = builder.Services;
+            services.AddSingleton<INetworkStatus, NetworkStatus>();
+            services.AddSingleton<IViewModelFactory, ViewModelFactory>();
+            services.AddSingleton<IAppFlow, AppCoordinator>();
+
+            services.AddTransient<HomeViewModel>();
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();
