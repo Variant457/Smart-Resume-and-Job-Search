@@ -6,94 +6,168 @@ using Windows.Storage;
 #endif
 using Smart_Resume_Job_Search_App.Presentation;
 using Smart_Resume_Job_Search_App.Domain;
+using System.Diagnostics;
 
 namespace Smart_Resume_Job_Search_App.UI;
 
 public partial class HomeView : ContentPage
 {
-	public HomeView()
-	{
-		InitializeComponent();
-		Appearing += (_, _) => VM.OnLoaded();
+    private bool _initialized;
+
+    public HomeView()
+    {
+        Debug.WriteLine("[HomeView] .ctor start");
+        InitializeComponent();
+
+        // Ensure ViewModel initialization happens when the view is realized
+        this.Loaded += OnLoadedOnce;
+        Debug.WriteLine("[HomeView] .ctor end");
     }
 
-	HomeViewModel VM => (HomeViewModel)BindingContext;
+    private void OnLoadedOnce(object? sender, EventArgs e)
+    {
+        if (_initialized)
+        {
+            Debug.WriteLine("[HomeView] Loaded fired again (ignored)");
+            return;
+        }
+        _initialized = true;
+        // Unsubscribe to avoid duplicate calls if the page is reloaded
+        this.Loaded -= OnLoadedOnce;
+
+        if (BindingContext is HomeViewModel vm)
+        {
+            vm.OnLoaded();
+            Debug.WriteLine("[HomeView] Loaded -> vm.OnLoaded()");
+        }
+        else
+        {
+            Debug.WriteLine("[HomeView] Loaded: BindingContext is not HomeViewModel");
+        }
+    }
+
+    HomeViewModel VM => (HomeViewModel)BindingContext;
+
+    protected override void OnAppearing()
+    {
+        Debug.WriteLine("[HomeView] OnAppearing start");
+        base.OnAppearing();
+        if (_initialized)
+        {
+            Debug.WriteLine("[HomeView] OnAppearing skipped (already initialized)");
+            return;
+        }
+        if (BindingContext is HomeViewModel vm)
+        {
+            Debug.WriteLine("[HomeView] OnAppearing -> vm.OnLoaded()");
+            vm.OnLoaded();
+            _initialized = true;
+            Debug.WriteLine("[HomeView] OnAppearing end");
+        }
+        else
+        {
+            Debug.WriteLine("[HomeView] OnAppearing: BindingContext is not HomeViewModel");
+        }
+    }
 
     static FilePickerFileType ResumeFileTypes => new(new Dictionary<DevicePlatform, IEnumerable<string>>
     {
         // iOS
-        [DevicePlatform.iOS] = new[]
-    {
-        "com.adobe.pdf",                                // PDF
-        "org.openxmlformats.wordprocessingml.document", // DOCX
-        "com.microsoft.word.doc",                       // DOC
-        "public.plain-text"                             // TXT
-    },
+        [DevicePlatform.iOS] = new []
+        {
+            "com.adobe.pdf",
+            "org.openxmlformats.wordprocessingml.document",
+            "com.microsoft.word.doc",
+            "public.plain-text"
+        },
         // Mac Catalyst
-        [DevicePlatform.MacCatalyst] = new[]
-    {
-        "com.adobe.pdf",
-        "org.openxmlformats.wordprocessingml.document",
-        "com.microsoft.word.doc",
-        "public.plain-text"
-    },
+        [DevicePlatform.MacCatalyst] = new []
+        {
+            "com.adobe.pdf",
+            "org.openxmlformats.wordprocessingml.document",
+            "com.microsoft.word.doc",
+            "public.plain-text"
+        },
         // Android (MIME types)
-        [DevicePlatform.Android] = new[]
-    {
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/msword",
-        "text/plain"
-    },
+        [DevicePlatform.Android] = new []
+        {
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/msword",
+            "text/plain"
+        },
         // Windows (file extensions)
-        [DevicePlatform.WinUI] = new[]
-    {
-        ".pdf", ".docx", ".doc", ".txt"
-    }
+        [DevicePlatform.WinUI] = new []
+        {
+            ".pdf", ".docx", ".doc", ".txt"
+        }
     });
 
     private void OnDragOver(object sender, DragEventArgs e)
-	{
+    {
         e.AcceptedOperation = Microsoft.Maui.Controls.DataPackageOperation.Copy;
     }
 
-	private async void OnDrop(object sender, DropEventArgs e)
-	{
-#if WINDOWS
-    var winArgs = e.PlatformArgs?.DragEventArgs;
-    if(winArgs?.DataView.Contains(StandardDataFormats.StorageItems) == true)
+    private async void OnDrop(object sender, DropEventArgs e)
     {
-        var items = await winArgs.DataView.GetStorageItemsAsync();
-        var file = items.OfType<StorageFile>().FirstOrDefault();
-        if (file != null)
+#if WINDOWS
+        var winArgs = e.PlatformArgs?.DragEventArgs;
+        if(winArgs?.DataView.Contains(StandardDataFormats.StorageItems) == true)
         {
-            using var stream = await file.OpenStreamForReadAsync();
-            var input = await ToInputBlobAsync(file.Name, MimeFromName(file.Name), stream);
-            if (input != null) await VM.UploadResume(input);
-            return;
+            var items = await winArgs.DataView.GetStorageItemsAsync();
+            var file = items.OfType<StorageFile>().FirstOrDefault();
+            if (file != null)
+            {
+                using var stream = await file.OpenStreamForReadAsync();
+                var input = await ToInputBlobAsync(file.Name, MimeFromName(file.Name), stream);
+                if (input != null) await VM.UploadResume(input);
+                return;
+            }
         }
-    }
 #endif
-    await Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
+    // Handle Button.Clicked
     private async void OnBrowseClicked(object sender, EventArgs e)
-	{
-		var file = await FilePicker.Default.PickAsync(new PickOptions
-		{
-			FileTypes = ResumeFileTypes,
-			PickerTitle = "Select your resume (PDF format)"
-		});
-		if (file is null) return;
+    {
+        Debug.WriteLine("[HomeView] OnBrowseClicked");
+        await BrowseAsync();
+    }
 
-		await using var stream = await file.OpenReadAsync();
+    // Handle TapGestureRecognizer.Tapped
+    private async void OnBrowseTapped(object sender, TappedEventArgs e)
+    {
+        Debug.WriteLine("[HomeView] OnBrowseTapped");
+        await BrowseAsync();
+    }
+
+    private async Task BrowseAsync()
+    {
+        Debug.WriteLine("[HomeView] BrowseAsync start");
+        var file = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            FileTypes = ResumeFileTypes,
+            PickerTitle = "Select your resume (PDF format)"
+        });
+        if (file is null) { Debug.WriteLine("[HomeView] BrowseAsync canceled"); return; }
+
+        await using var stream = await file.OpenReadAsync();
 
         var mime = string.IsNullOrWhiteSpace(file.ContentType)
             ? MimeFromName(file.FileName)
             : file.ContentType;
 
         var input = await ToInputBlobAsync(file.FileName, mime, stream);
-        if (input is not null) await VM.UploadResume(input);
+        if (input is not null)
+        {
+            Debug.WriteLine($"[HomeView] BrowseAsync -> UploadResume {file.FileName}, {mime}, {input.Content?.Length} bytes");
+            await VM.UploadResume(input);
+        }
+        else
+        {
+            Debug.WriteLine("[HomeView] BrowseAsync: ToInputBlobAsync returned null");
+        }
     }
 
     private static string MimeFromName(string fileName)

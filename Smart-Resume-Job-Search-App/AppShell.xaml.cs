@@ -4,7 +4,15 @@
     {
         public AppShell()
         {
+            System.Diagnostics.Debug.WriteLine("[AppShell] .ctor start");
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("[AppShell] .ctor end");
+        }
+
+        protected override void OnAppearing()
+        {
+            System.Diagnostics.Debug.WriteLine("[AppShell] OnAppearing");
+            base.OnAppearing();
         }
     }
 }

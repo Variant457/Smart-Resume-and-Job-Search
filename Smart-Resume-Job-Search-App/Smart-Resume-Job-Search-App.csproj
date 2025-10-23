@@ -70,4 +70,8 @@
 	  </MauiXaml>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="AI\" />
+	</ItemGroup>
+
 </Project>

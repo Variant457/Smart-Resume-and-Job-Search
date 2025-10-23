@@ -11,6 +11,6 @@ namespace Smart_Resume_Job_Search_App
         {
         }
 
-        protected override MauiApp CreateMauiApp() => Client.CreateMauiApp();
+        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
 }
