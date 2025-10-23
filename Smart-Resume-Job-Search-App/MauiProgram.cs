@@ -2,6 +2,8 @@
 using Smart_Resume_Job_Search_App.Infrastructure;
 using Smart_Resume_Job_Search_App.Presentation;
 using Smart_Resume_Job_Search_App.UINav;
+using Smart_Resume_Job_Search_App.AppServices; // add this
+using System.Diagnostics;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -9,6 +11,7 @@ namespace Smart_Resume_Job_Search_App
     {
         public static MauiApp CreateMauiApp()
         {
+            Debug.WriteLine("[MauiProgram] CreateMauiApp starting");
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -19,16 +22,34 @@ namespace Smart_Resume_Job_Search_App
                 });
 
             var services = builder.Services;
+
+            // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
+            services.AddSingleton<ApplicationFacade>();                    
             services.AddSingleton<IViewModelFactory, ViewModelFactory>();
+            services.AddSingleton<IViewResolver, ViewResolver>();          
+            services.AddSingleton<INavigationService, ShellNavigation>(); 
             services.AddSingleton<IAppFlow, AppCoordinator>();
 
+            // ViewModels
             services.AddTransient<HomeViewModel>();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
 
-            return builder.Build();
+            // Global exception logging hooks for extra visibility
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+                Debug.WriteLine($"[UnhandledException] {e.ExceptionObject}");
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                Debug.WriteLine($"[UnobservedTaskException] {e.Exception}");
+                e.SetObserved();
+            };
+
+            var app = builder.Build();
+            Debug.WriteLine("[MauiProgram] CreateMauiApp completed");
+            return app;
         }
     }
 }

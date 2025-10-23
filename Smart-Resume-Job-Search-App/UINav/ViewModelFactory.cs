@@ -11,11 +11,16 @@
 
         public TViewModel Create<TViewModel>(object? parameter = null)
         {
+            System.Diagnostics.Debug.WriteLine($"[ViewModelFactory] Create<{typeof(TViewModel).Name}> param?={(parameter!=null)}");
             if (parameter is null)
             {
-                return ActivatorUtilities.CreateInstance<TViewModel>(serviceProvider);
+                var instance = ActivatorUtilities.CreateInstance<TViewModel>(serviceProvider);
+                System.Diagnostics.Debug.WriteLine($"[ViewModelFactory] Created {instance?.GetType().Name}");
+                return instance;
             }
-            return ActivatorUtilities.CreateInstance<TViewModel>(serviceProvider, parameter);
+            var instanceWithParam = ActivatorUtilities.CreateInstance<TViewModel>(serviceProvider, parameter);
+            System.Diagnostics.Debug.WriteLine($"[ViewModelFactory] Created with parameter {instanceWithParam?.GetType().Name}");
+            return instanceWithParam;
         }
     }
 }

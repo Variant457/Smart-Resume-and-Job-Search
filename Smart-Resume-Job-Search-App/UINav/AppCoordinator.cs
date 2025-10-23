@@ -1,6 +1,6 @@
-﻿
-using Smart_Resume_Job_Search_App.AppServices;
+﻿using Smart_Resume_Job_Search_App.AppServices;
 using Smart_Resume_Job_Search_App.Presentation;
+using System.Diagnostics;
 
 namespace Smart_Resume_Job_Search_App.UINav
 {
@@ -15,37 +15,48 @@ namespace Smart_Resume_Job_Search_App.UINav
             this.nav = nav;
             this.vmFactory = vmFactory;
             this.facade = facade;
+            Debug.WriteLine("[AppFlow] .ctor");
         }
 
-        public Task Start() => nav.ReplaceRoot<HomeViewModel>();
+        public Task Start()
+        {
+            Debug.WriteLine("[AppFlow] Start invoked");
+            return nav.ReplaceRoot<HomeViewModel>();
+        }
 
         public async Task StartSearch()
         {
-            ; //TODO: Implement job search flow
+            Debug.WriteLine("[AppFlow] StartSearch invoked");
+            await Task.CompletedTask; //TODO
         }
 
         public async Task ShowResults()
         {
-            ; //TODO: Implement show results flow
+            Debug.WriteLine("[AppFlow] ShowResults invoked");
+            await Task.CompletedTask; //TODO
         }
 
         public async Task StartOptimizing()
         {
-            ; //TODO: Implement select job flow
+            Debug.WriteLine("[AppFlow] StartOptimizing invoked");
+            await Task.CompletedTask; //TODO
         }
 
         public async Task ShowOptimized()
         {
-            ; //TODO: Implement show optimized resume flow
+            Debug.WriteLine("[AppFlow] ShowOptimized invoked");
+            await Task.CompletedTask; //TODO
         }
 
         public Task BackToHome()
         {
+            Debug.WriteLine("[AppFlow] BackToHome invoked");
             return nav.ReplaceRoot<HomeViewModel>();
         }
 
         public Task BackToResults()
         {
+            Debug.WriteLine("[AppFlow] BackToResults invoked");
             return nav.GoBack();
         }
     }
