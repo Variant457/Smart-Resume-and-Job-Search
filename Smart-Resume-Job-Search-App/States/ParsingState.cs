@@ -13,11 +13,11 @@ namespace Smart_Resume_Job_Search_App.States
             Debug.WriteLine("Parsing State initialized.");
         }
 
-        public void EnterState()
+        public async void EnterState()
         {
             Debug.WriteLine("Entering Parsing State: Parsing resumes and job descriptions.");
 
-            appWorkflow.ParseResume();
+            await appWorkflow.ParseResumeAsync();
         }
 
         public void ExitState()

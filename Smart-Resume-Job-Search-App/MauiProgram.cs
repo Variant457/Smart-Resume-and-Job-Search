@@ -31,7 +31,8 @@ namespace Smart_Resume_Job_Search_App
             services.AddSingleton<IViewResolver, ViewResolver>();          
             services.AddSingleton<INavigationService, ShellNavigation>(); 
             services.AddSingleton<IAppFlow, AppCoordinator>();
-            services.AddSingleton<IResumeParser, ResumeParser>();
+            services.AddSingleton<ParsingAdapter>();
+            services.AddSingleton<ResumeParser>();
 
             // ViewModels
             services.AddTransient<HomeViewModel>();
