@@ -5,7 +5,12 @@ namespace Smart_Resume_Job_Search_App.AppServices
 {
     public class ApplicationFacade
     {
-        private readonly AppWorkflow workflow = new();
+        private readonly AppWorkflow workflow;
+
+        public ApplicationFacade(AppWorkflow workflow)
+        {
+            this.workflow = workflow;
+        }
 
         public bool HasPreviousResume()
         {
