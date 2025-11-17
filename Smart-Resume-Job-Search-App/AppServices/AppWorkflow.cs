@@ -9,6 +9,12 @@ namespace Smart_Resume_Job_Search_App.AppServices
     {
         private IAppState? curState;
         private InputBlob? currentInput;
+        private readonly ResumeParser parser;
+
+        public AppWorkflow(ResumeParser parser)
+        {
+            this.parser = parser;
+        }
 
         public void SetState(InputBlob input)
         {
@@ -27,8 +33,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
             Debug.WriteLine($"[AppWorkflow] Parsing resume: {currentInput.FileName} ({currentInput.MimeType}), {currentInput.Content?.Length} bytes");
 
-            var parser = new ResumeParser(new ParsingAdapter());
-            // Pass the full InputBlob so we can extract text from PDFs
+            // Pass the full InputBlob so we can extract text from PDFs or DOCX files
             var entities = await parser.ParseAsync(currentInput);
 
             Debug.WriteLine($"[AppWorkflow] Parsed {entities.Count} entities");
