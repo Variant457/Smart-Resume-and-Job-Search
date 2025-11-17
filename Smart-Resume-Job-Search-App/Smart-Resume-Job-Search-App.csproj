@@ -68,6 +68,11 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
 	</ItemGroup>
 
+	<!-- Windows-only PDF text extraction dependency -->
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
+	</ItemGroup>
+
 	<ItemGroup>
 	 <MauiXaml Update="UI\HomeView.xaml">
  	 <Generator>MSBuild:Compile</Generator>

@@ -28,7 +28,8 @@ namespace Smart_Resume_Job_Search_App.AppServices
             Debug.WriteLine($"[AppWorkflow] Parsing resume: {currentInput.FileName} ({currentInput.MimeType}), {currentInput.Content?.Length} bytes");
 
             var parser = new ResumeParser(new ParsingAdapter());
-            var entities = await parser.ParseAsync(currentInput.Content);
+            // Pass the full InputBlob so we can extract text from PDFs
+            var entities = await parser.ParseAsync(currentInput);
 
             Debug.WriteLine($"[AppWorkflow] Parsed {entities.Count} entities");
             // TODO: propagate results to next state / domain model as needed

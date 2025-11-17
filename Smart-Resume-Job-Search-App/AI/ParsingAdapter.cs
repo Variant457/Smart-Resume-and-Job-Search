@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 
 namespace Smart_Resume_Job_Search_App.AI
@@ -20,6 +21,14 @@ namespace Smart_Resume_Job_Search_App.AI
 #else
             try
             {
+                // Sanitize and normalize input before sending to Python (avoid TextEncodeInput errors on binary/invalid text)
+                var clean = SanitizeForPython(text);
+                if (string.IsNullOrWhiteSpace(clean))
+                {
+                    Debug.WriteLine("[ParsingAdapter] Input was not valid text after sanitization.");
+                    return Array.Empty<ExtractedEntity>();
+                }
+
                 var scriptPath = ResolveScriptPath();
                 if (!File.Exists(scriptPath))
                 {
@@ -47,7 +56,15 @@ namespace Smart_Resume_Job_Search_App.AI
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
+                    // Ensure UTF-8 across the pipe to avoid encoding issues
+                    StandardInputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                    StandardOutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                    StandardErrorEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
                 };
+
+                // Help Python treat stdio as UTF-8 on all platforms
+                psi.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+                psi.EnvironmentVariables["PYTHONUTF8"] = "1";
 
                 using var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
                 if (!proc.Start())
@@ -67,7 +84,7 @@ namespace Smart_Resume_Job_Search_App.AI
 
                 try
                 {
-                    await proc.StandardInput.WriteAsync(text);
+                    await proc.StandardInput.WriteAsync(clean);
                     await proc.StandardInput.FlushAsync();
                     proc.StandardInput.Close();
                 }
@@ -179,6 +196,83 @@ namespace Smart_Resume_Job_Search_App.AI
                 }
             }
             return null;
+        }
+
+        private static string SanitizeForPython(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+
+            // Walk by Unicode scalar values to strip invalid UTF-16 sequences and control chars
+            var sb = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length;)
+            {
+                if (!Rune.TryGetRuneAt(text, i, out var rune))
+                {
+                    // Invalid surrogate or sequence; replace with space and advance one
+                    sb.Append(' ');
+                    i++;
+                    continue;
+                }
+
+                i += rune.Utf16SequenceLength;
+
+                // Drop most control chars except common whitespace
+                if (Rune.IsControl(rune))
+                {
+                    if (rune.Value == '\n' || rune.Value == '\r' || rune.Value == '\t')
+                    {
+                        sb.Append(rune.ToString());
+                    }
+                    else
+                    {
+                        sb.Append(' ');
+                    }
+                    continue;
+                }
+
+                sb.Append(rune.ToString());
+            }
+
+            var cleaned = sb.ToString();
+
+            string norm;
+            try
+            {
+                norm = cleaned.Normalize(NormalizationForm.FormKC);
+            }
+            catch
+            {
+                // If normalization fails for any reason, fall back to the cleaned string
+                norm = cleaned;
+            }
+
+            norm = norm.Trim();
+
+            // If the text looks mostly non-printable, bail out early
+            if (!LooksLikeHumanText(norm))
+                return string.Empty;
+
+            // Keep it bounded (tokenizer will truncate too)
+            const int MaxChars = 200_000; // ~200 KB of text
+            if (norm.Length > MaxChars)
+                norm = norm.Substring(0, MaxChars);
+
+            return norm;
+        }
+
+        private static bool LooksLikeHumanText(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return false;
+            int printable = 0;
+            int total = 0;
+            foreach (var ch in s)
+            {
+                total++;
+                if (char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch) || char.IsPunctuation(ch) || char.IsSymbol(ch))
+                    printable++;
+            }
+            // Require at least60% printable chars
+            return total > 0 && printable * 100 / total >= 60;
         }
     }
 }
