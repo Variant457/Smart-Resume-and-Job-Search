@@ -16,7 +16,6 @@ namespace Smart_Resume_Job_Search_App.AppServices
         public async Task UploadResume(InputBlob input)
         {
             Debug.WriteLine($"[ApplicationFacade] UploadResume: {input?.FileName} size={input?.Content?.Length}");
-            // Transition to parsing state
             workflow.SetState();
             await Task.CompletedTask;
         }

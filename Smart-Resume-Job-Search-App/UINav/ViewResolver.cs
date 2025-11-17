@@ -32,16 +32,12 @@
                 ?? throw new InvalidOperationException($"Could not create instance of {viewType.Name}");
             System.Diagnostics.Debug.WriteLine($"[ViewResolver] View instance created: {view?.GetType().FullName}");
 
-            // Important: set BindingContext before InitializeComponent has been called,
-            // but since ContentPage's InitializeComponent is in the constructor, this is fine.
             view.BindingContext = viewModel;
             System.Diagnostics.Debug.WriteLine("[ViewResolver] BindingContext assigned");
 
-            // Extra safety: ensure the view is a ContentPage and not null content
             if (view is ContentPage cp && cp.Content is null)
             {
                 System.Diagnostics.Debug.WriteLine("[ViewResolver] View Content was null - setting fallback content");
-                // Create a minimal fallback UI to catch blank page issues
                 cp.Content = new VerticalStackLayout
                 {
                     Children =
