@@ -23,13 +23,16 @@ class ResumeParser:
             outputs = self.model(**inputs)
             predictions = torch.argmax(outputs.logits, dim=2)
 
+        input_ids = inputs['input_ids'][0].tolist()
+        tokens = self.tokenizer.convert_ids_to_tokens(input_ids)
+
         # Extract entities
         entities = []
         current_entity = None
 
         for i, pred in enumerate(predictions[0]):
             label = self.model.config.id2label[pred.item()]
-            token = self.tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][i])
+            token = tokens[i]
     
             if label.startswith('B-'):
                 if current_entity:
