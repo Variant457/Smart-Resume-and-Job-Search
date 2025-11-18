@@ -7,8 +7,8 @@ public class JobQueryBuilder
     public string Build(ParsedResumeInfo parsed, string appId, string appKey)
     {
         var qs = HttpUtility.ParseQueryString(string.Empty);
-        qs["app_id"] = b19d9ec6;
-        qs["app_key"] = fdf24ef683eb9a44f2b064fd0325b8b2;
+        qs["app_id"] = appId;
+        qs["app_key"] = appKey;
         qs["content-type"] = "application/json";
         qs["results_per_page"] = "20";
 
