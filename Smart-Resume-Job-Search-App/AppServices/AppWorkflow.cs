@@ -1,37 +1,75 @@
-﻿using Smart_Resume_Job_Search_App.States;
-using Smart_Resume_Job_Search_App.AI;
-using Smart_Resume_Job_Search_App.Domain;
+﻿using Smart_Resume_Job_Search_App.Domain;
+using Smart_Resume_Job_Search_App.States;
 using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
+    public class EntityDto
+    {
+        public string text { get; set; }
+        public string label { get; set; }
+        public int start { get; set; }
+    }
+
     class AppWorkflow
     {
-        private IAppState? curState;
-        private InputBlob? currentInput;
+        private readonly InputBlob inputBlob;
+        private readonly TextExtractionService textExtractionService;
+        IAppState curState;
 
-        public void SetState(InputBlob input)
+        public AppWorkflow(InputBlob inputBlob, TextExtractionService textExtractionService)
         {
-            currentInput = input;
+            this.inputBlob = inputBlob;
+            this.textExtractionService = textExtractionService;
+        }
+
+        public void SetState()
+        {
             curState = new ParsingState(this);
             curState.EnterState();
         }
         
-        public async Task ParseResumeAsync()
+        public void ParseResume()
         {
-            if (currentInput is null)
+            var text = textExtractionService.Extract(inputBlob);
+
+            var baseDir = AppContext.BaseDirectory;
+            var projectRoot = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
+            var scriptPath = Path.Combine(projectRoot, "AI", "ParsingModel.py");
+            var psi = new ProcessStartInfo
             {
-                Debug.WriteLine("[AppWorkflow] ParseResumeAsync called with null input");
-                return;
+                FileName = "python",
+                Arguments = $"\"{scriptPath}\"",
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
+            };
+
+            using var process = new Process { StartInfo = psi };
+            process.Start();
+
+            using (var sw = process.StandardInput)
+            {
+                sw.WriteLine(text);
             }
 
-            Debug.WriteLine($"[AppWorkflow] Parsing resume: {currentInput.FileName} ({currentInput.MimeType}), {currentInput.Content?.Length} bytes");
+            string json = process.StandardOutput.ReadToEnd();
+            string err = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+            if(process.ExitCode != 0)
+            {
+                Debug.WriteLine($"[AppWorkflow] Parsing process exited with code {process.ExitCode}. Error: {err}");
+                throw new Exception("Parsing process failed.");
+            }
 
-            var parser = new ResumeParser(new ParsingAdapter());
-            var entities = await parser.ParseAsync(currentInput.Content);
-
-            Debug.WriteLine($"[AppWorkflow] Parsed {entities.Count} entities");
-            // TODO: propagate results to next state / domain model as needed
+            var entities = JsonSerializer.Deserialize<List<EntityDto>>(json);
+            Debug.WriteLine($"[AppWorkflow] Parsing completed successfully. Output: \n{json}");
         }
     }
 }

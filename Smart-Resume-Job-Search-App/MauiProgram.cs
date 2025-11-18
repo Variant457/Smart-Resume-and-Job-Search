@@ -3,7 +3,6 @@ using Smart_Resume_Job_Search_App.Infrastructure;
 using Smart_Resume_Job_Search_App.Presentation;
 using Smart_Resume_Job_Search_App.UINav;
 using Smart_Resume_Job_Search_App.AppServices;
-using Smart_Resume_Job_Search_App.AI;
 using System.Diagnostics;
 
 namespace Smart_Resume_Job_Search_App
@@ -31,8 +30,10 @@ namespace Smart_Resume_Job_Search_App
             services.AddSingleton<IViewResolver, ViewResolver>();          
             services.AddSingleton<INavigationService, ShellNavigation>(); 
             services.AddSingleton<IAppFlow, AppCoordinator>();
-            services.AddSingleton<ParsingAdapter>();
-            services.AddSingleton<ResumeParser>();
+            services.AddSingleton<TextExtractionService>();
+            services.AddSingleton<ITextExtractor, TxtExtractor>();
+            services.AddSingleton<ITextExtractor, DocxExtractor>();
+            services.AddSingleton<ITextExtractor, PdfExtractor>();
 
             // ViewModels
             services.AddTransient<HomeViewModel>();
