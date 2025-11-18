@@ -7,6 +7,9 @@ using Smart_Resume_Job_Search_App.AI;
 using System.Diagnostics;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
+using Microsoft.Maui.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -16,6 +19,7 @@ namespace Smart_Resume_Job_Search_App
         {
             Debug.WriteLine("[MauiProgram] CreateMauiApp starting");
             var builder = MauiApp.CreateBuilder();
+
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
@@ -26,15 +30,20 @@ namespace Smart_Resume_Job_Search_App
 
             var services = builder.Services;
 
-            // Database context
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=smartresume.db"));
+            // local SQLite database path (per user / per device)
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "smartresume.db");
+
+            //  Database context with SQLite
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
 
             // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
-            services.AddSingleton<ApplicationFacade>();                    
+            services.AddSingleton<AppWorkflow>();               // ✅ register workflow for DI
+            services.AddSingleton<ApplicationFacade>();
             services.AddSingleton<IViewModelFactory, ViewModelFactory>();
-            services.AddSingleton<IViewResolver, ViewResolver>();          
-            services.AddSingleton<INavigationService, ShellNavigation>(); 
+            services.AddSingleton<IViewResolver, ViewResolver>();
+            services.AddSingleton<INavigationService, ShellNavigation>();
             services.AddSingleton<IAppFlow, AppCoordinator>();
             services.AddSingleton<ParsingAdapter>();
             services.AddSingleton<ResumeParser>();
@@ -56,6 +65,14 @@ namespace Smart_Resume_Job_Search_App
             };
 
             var app = builder.Build();
+
+            //  Ensure database + tables are created (no migrations, no dotnet ef)
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.EnsureCreated();
+            }
+
             Debug.WriteLine("[MauiProgram] CreateMauiApp completed");
             return app;
         }
