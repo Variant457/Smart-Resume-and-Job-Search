@@ -2,7 +2,8 @@
 using Smart_Resume_Job_Search_App.Infrastructure;
 using Smart_Resume_Job_Search_App.Presentation;
 using Smart_Resume_Job_Search_App.UINav;
-using Smart_Resume_Job_Search_App.AppServices; // add this
+using Smart_Resume_Job_Search_App.AppServices;
+using Smart_Resume_Job_Search_App.AI;
 using System.Diagnostics;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,8 @@ namespace Smart_Resume_Job_Search_App
             services.AddSingleton<IViewResolver, ViewResolver>();          
             services.AddSingleton<INavigationService, ShellNavigation>(); 
             services.AddSingleton<IAppFlow, AppCoordinator>();
+            services.AddSingleton<ParsingAdapter>();
+            services.AddSingleton<ResumeParser>();
 
             // ViewModels
             services.AddTransient<HomeViewModel>();
