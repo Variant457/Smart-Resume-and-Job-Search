@@ -62,12 +62,16 @@ namespace Smart_Resume_Job_Search_App.AppServices
             string json = process.StandardOutput.ReadToEnd();
             string err = process.StandardError.ReadToEnd();
             process.WaitForExit();
-            if(process.ExitCode != 0)
+
+            Debug.WriteLine($"[AppWorkflow] Raw Parsing Output:\n{json}");
+
+            if (process.ExitCode != 0)
             {
                 Debug.WriteLine($"[AppWorkflow] Parsing process exited with code {process.ExitCode}. Error: {err}");
                 throw new Exception("Parsing process failed.");
             }
 
+            json = json.Trim();
             var entities = JsonSerializer.Deserialize<List<EntityDto>>(json);
             Debug.WriteLine($"[AppWorkflow] Parsing completed successfully. Output: \n{json}");
         }
