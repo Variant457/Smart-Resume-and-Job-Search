@@ -30,7 +30,7 @@
                     <TapGestureRecognizer
                         Tapped="OnBrowseTapped" />
                 </Grid.GestureRecognizers>
-                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="1">
                     <Image Source="upload_icon.png" HeightRequest="42" WidthRequest="42" />
                     <Label Text="Drag and drop your resume here"
                            FontAttributes="Bold"

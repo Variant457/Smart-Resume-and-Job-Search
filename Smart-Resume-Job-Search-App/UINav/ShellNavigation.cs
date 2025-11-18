@@ -23,7 +23,6 @@ namespace Smart_Resume_Job_Search_App.UINav
             void Apply()
             {
                 Debug.WriteLine("[ShellNavigation] Apply ReplaceRoot on UI thread");
-                // Prefer setting Application.MainPage to avoid Window.Page setter issues on Windows
                 var app = Application.Current ?? throw new InvalidOperationException("Application.Current is null");
 
                 var shell = app.MainPage as AppShell ?? new AppShell();
@@ -37,7 +36,6 @@ namespace Smart_Resume_Job_Search_App.UINav
 
                 var title = typeof(TViewModel).Name.Replace("ViewModel", string.Empty);
 
-                // Resolve the Page and construct canonical Shell hierarchy
                 var page = resolver.Resolve(vm);
                 Debug.WriteLine($"[ShellNavigation] Resolved page: {page?.GetType().Name}");
 
