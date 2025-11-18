@@ -1,5 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 import torch
+import json
+import sys
 
 class ResumeParser:
     def __init__(self, model_name="yashpwr/resume-ner-bert-v2"):
@@ -8,7 +10,7 @@ class ResumeParser:
 
     def parse(self, text):
         # Tokenize
-        inputs = tokenizer(
+        inputs = self.tokenizer(
             text,
             return_tensors="pt",
             truncation=True,
@@ -18,7 +20,7 @@ class ResumeParser:
 
         # Predict
         with torch.no_grad():
-            outputs = model(**inputs)
+            outputs = self.model(**inputs)
             predictions = torch.argmax(outputs.logits, dim=2)
 
         # Extract entities
@@ -26,8 +28,8 @@ class ResumeParser:
         current_entity = None
 
         for i, pred in enumerate(predictions[0]):
-            label = model.config.id2label[pred.item()]
-            token = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][i])
+            label = self.model.config.id2label[pred.item()]
+            token = self.tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][i])
     
             if label.startswith('B-'):
                 if current_entity:
@@ -47,6 +49,13 @@ class ResumeParser:
         if current_entity:
             entities.append(current_entity)
 
-        print("Extracted Entities:")
-        for entity in entities:
-            print(f"- {entity['label']}: {entity['text']}")
+        return entities
+
+def main():
+    text = sys.stdin.read()
+    parser = ResumeParser()
+    entities = parser.parse(text)
+    print(json.dumps(entities))
+
+if __name__ == "__main__":
+    main()
