@@ -4,6 +4,8 @@ using Smart_Resume_Job_Search_App.Presentation;
 using Smart_Resume_Job_Search_App.UINav;
 using Smart_Resume_Job_Search_App.AppServices; // add this
 using System.Diagnostics;
+using Smart_Resume_Job_Search_App.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -22,6 +24,9 @@ namespace Smart_Resume_Job_Search_App
                 });
 
             var services = builder.Services;
+
+            // Database context
+            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=smartresume.db"));
 
             // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
