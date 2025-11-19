@@ -1,46 +1,57 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Json;
-using Microsoft.Extensions.Configuration;                  
+using Microsoft.Extensions.Configuration;
 using Smart_Resume_Job_Search_App.Data;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
     public class JobSearchService
     {
-        private readonly HttpClient httpClient;
-        private readonly AppDbContext db;
-        private readonly JobQueryBuilder queryBuilder;
-        private readonly string adzunaAppId;             
-        private readonly string adzunaAppKey;             
+        private readonly HttpClient _httpClient;
+        private readonly AppDbContext _db;
+        private readonly JobQueryBuilder _queryBuilder;
+        private readonly string _adzunaAppId;
+        private readonly string _adzunaAppKey;
 
         public JobSearchService(
             HttpClient httpClient,
             AppDbContext db,
             JobQueryBuilder queryBuilder,
-            IConfiguration config)                       
+            IConfiguration config)
         {
-            this.httpClient = httpClient;
-            this.db = db;
-            this.queryBuilder = queryBuilder;
+            _httpClient = httpClient;
+            _db = db;
+            _queryBuilder = queryBuilder;
 
-            // ⭐ Read from appsettings.json
-            adzunaAppId = config["Adzuna:AppId"] ?? "";
-            adzunaAppKey = config["Adzuna:AppKey"] ?? "";
+            // From appsettings.json
+            _adzunaAppId = config["Adzuna:AppId"] ?? string.Empty;
+            _adzunaAppKey = config["Adzuna:AppKey"] ?? string.Empty;
 
-            if (string.IsNullOrWhiteSpace(adzunaAppId) || string.IsNullOrWhiteSpace(adzunaAppKey))
+            if (string.IsNullOrWhiteSpace(_adzunaAppId) ||
+                string.IsNullOrWhiteSpace(_adzunaAppKey))
             {
                 Debug.WriteLine("[JobSearchService] WARNING: Adzuna AppId/AppKey are not configured.");
             }
         }
 
-        public async Task<IReadOnlyList<JobPosting>> SearchAndStoreAsync(ParsedResumeInfo parsed, CancellationToken ct = default)
+        public async Task<IReadOnlyList<JobPosting>> SearchAndStoreAsync(
+            ParsedResumeInfo parsed,
+            CancellationToken ct = default)
         {
             Debug.WriteLine("[JobSearchService] SearchAndStoreAsync start");
 
-            var url = queryBuilder.Build(parsed, adzunaAppId, adzunaAppKey);   // ⭐ uses config values now
+            if (string.IsNullOrWhiteSpace(_adzunaAppId) ||
+                string.IsNullOrWhiteSpace(_adzunaAppKey))
+            {
+                Debug.WriteLine("[JobSearchService] Missing Adzuna credentials – skipping search.");
+                return Array.Empty<JobPosting>();
+            }
+
+            // Build URL from parsed resume (uses one title + location)
+            var url = _queryBuilder.Build(parsed, _adzunaAppId, _adzunaAppKey);
             Debug.WriteLine($"[JobSearchService] URL: {url}");
 
-            using var response = await httpClient.GetAsync(url, ct);
+            using var response = await _httpClient.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadFromJsonAsync<AdzunaResponse>(cancellationToken: ct);
@@ -51,26 +62,29 @@ namespace Smart_Resume_Job_Search_App.AppServices
             }
 
             var postings = new List<JobPosting>();
+
             foreach (var r in json.results)
             {
                 var jp = new JobPosting
                 {
-                    JobId = r.id ?? "",
-                    Title = r.title ?? "",
-                    Company = r.company?.display_name ?? "",
-                    Location = r.location?.display_name ?? "",
-                    Description = r.description ?? "",
-                    Url = r.redirect_url ?? "",
+                    JobId = r.id ?? string.Empty,
+                    Title = r.title ?? string.Empty,
+                    Company = r.company?.display_name ?? string.Empty,
+                    Location = r.location?.display_name ?? string.Empty,
+                    Description = r.description ?? string.Empty,
+                    Url = r.redirect_url ?? string.Empty,
                     SalaryMin = r.salary_min,
                     SalaryMax = r.salary_max,
                     ParsedResumeInfoId = parsed.Id
                 };
+
                 postings.Add(jp);
-                db.JobPostings.Add(jp);
+                _db.JobPostings.Add(jp);
             }
 
-            await db.SaveChangesAsync(ct);
+            await _db.SaveChangesAsync(ct);
             Debug.WriteLine($"[JobSearchService] Stored {postings.Count} job postings");
+
             return postings;
         }
 

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.IO;
 using Microsoft.Maui.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;   // 👈 added
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -28,6 +29,12 @@ namespace Smart_Resume_Job_Search_App
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            // Load appsettings.json (must be Content + Copy to Output Directory)
+            builder.Configuration.AddJsonFile(
+                "appsettings.json",
+                optional: true,
+                reloadOnChange: false);
+
             var services = builder.Services;
 
             // local SQLite database path (per user / per device)
@@ -37,9 +44,18 @@ namespace Smart_Resume_Job_Search_App
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
 
+            // Job query + Adzuna integration
+            // Base Adzuna API URL 
+            services.AddSingleton(sp =>
+                new JobQueryBuilder("http://api.adzuna.com:80"));
+
+            // Typed HttpClient + JobSearchService (gets HttpClient, AppDbContext,
+            // JobQueryBuilder, IConfiguration injected automatically)
+            services.AddHttpClient<JobSearchService>();
+
             // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
-            services.AddSingleton<AppWorkflow>();               // ✅ register workflow for DI
+            services.AddSingleton<AppWorkflow>();               // register workflow for DI (even though ApplicationFacade currently 'new's it)
             services.AddSingleton<ApplicationFacade>();
             services.AddSingleton<IViewModelFactory, ViewModelFactory>();
             services.AddSingleton<IViewResolver, ViewResolver>();
