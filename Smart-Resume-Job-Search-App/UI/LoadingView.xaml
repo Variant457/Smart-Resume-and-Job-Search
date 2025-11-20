@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Smart_Resume_Job_Search_App.UI.LoadingView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:Smart_Resume_Job_Search_App.Presentation"
+    Title="Loading">
+
+    <ContentPage.Content>
+        <Grid Padding="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Spinner in the middle -->
+            <ActivityIndicator
+                Grid.Row="1"
+                IsRunning="True"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                WidthRequest="48"
+                HeightRequest="48" />
+
+            <!-- Message below the spinner -->
+            <Label
+                Grid.Row="1"
+                Margin="0,64,0,0"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Text="{Binding Message}"
+                FontSize="Medium" />
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

@@ -2,8 +2,9 @@
 using Smart_Resume_Job_Search_App.Infrastructure;
 using Smart_Resume_Job_Search_App.Presentation;
 using Smart_Resume_Job_Search_App.UINav;
-using Smart_Resume_Job_Search_App.AppServices; // add this
+using Smart_Resume_Job_Search_App.AppServices; 
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -13,6 +14,8 @@ namespace Smart_Resume_Job_Search_App
         {
             Debug.WriteLine("[MauiProgram] CreateMauiApp starting");
             var builder = MauiApp.CreateBuilder();
+
+
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
@@ -30,9 +33,11 @@ namespace Smart_Resume_Job_Search_App
             services.AddSingleton<IViewResolver, ViewResolver>();          
             services.AddSingleton<INavigationService, ShellNavigation>(); 
             services.AddSingleton<IAppFlow, AppCoordinator>();
-
+          
             // ViewModels
             services.AddTransient<HomeViewModel>();
+            services.AddTransient<LoadingViewModel>();
+            services.AddTransient<JobResultsViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();
