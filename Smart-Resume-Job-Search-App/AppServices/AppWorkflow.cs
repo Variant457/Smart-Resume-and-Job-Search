@@ -1,10 +1,10 @@
-﻿using DocumentFormat.OpenXml.Office.CustomUI;
-using Smart_Resume_Job_Search_App.Domain;
+﻿using Smart_Resume_Job_Search_App.Domain;
 using Smart_Resume_Job_Search_App.States;
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using Smart_Resume_Job_Search_App.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
@@ -12,12 +12,14 @@ namespace Smart_Resume_Job_Search_App.AppServices
     {
         private readonly InputBlob inputBlob;
         private readonly TextExtractionService textExtractionService;
+        private readonly AppDbContext dbContext;
         IAppState curState;
 
-        public AppWorkflow(InputBlob inputBlob, TextExtractionService textExtractionService)
+        public AppWorkflow(InputBlob inputBlob, TextExtractionService textExtractionService, AppDbContext dbContext)
         {
             this.inputBlob = inputBlob;
             this.textExtractionService = textExtractionService;
+            this.dbContext = dbContext;
         }
 
         public void SetState()
@@ -26,7 +28,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             curState.EnterState();
         }
         
-        public void ParseResume()
+        public async Task ParseResume()
         {
             var text = textExtractionService.Extract(inputBlob);
 
@@ -68,6 +70,27 @@ namespace Smart_Resume_Job_Search_App.AppServices
             Debug.WriteLine($"[AppWorkflow] Parsing completed successfully. Output: \n{json}");
 
             var parsedResume = new ParsedResume(inputBlob.Sha256, json);
+            var existingRecord = await dbContext.LatestParsedResume.SingleOrDefaultAsync();
+            if (existingRecord == null)
+            {
+                var record = new ParsedResumeRecord
+                {
+                    SourceSha256 = parsedResume.sourceSha256,
+                    RawJson = parsedResume.RawJson,
+                    Location = parsedResume.Location,
+                    ParsedAt = parsedResume.ParsedAt
+                };
+                dbContext.LatestParsedResume.Add(record);
+            } else
+            {
+                existingRecord.SourceSha256 = parsedResume.sourceSha256;
+                existingRecord.RawJson = parsedResume.RawJson;
+                existingRecord.Location = parsedResume.Location;
+                existingRecord.ParsedAt = parsedResume.ParsedAt;
+            }
+
+            await dbContext.SaveChangesAsync();
+            Debug.WriteLine("[AppWorkflow] Parsed resume saved to database.");
         }
     }
 

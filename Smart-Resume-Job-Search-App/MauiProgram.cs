@@ -6,10 +6,7 @@ using Smart_Resume_Job_Search_App.AppServices;
 using System.Diagnostics;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
-using Microsoft.Maui.Storage;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;   // 👈 added
+using Microsoft.Extensions.Configuration;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -51,6 +48,8 @@ namespace Smart_Resume_Job_Search_App
             // Typed HttpClient + JobSearchService (gets HttpClient, AppDbContext,
             // JobQueryBuilder, IConfiguration injected automatically)
             services.AddHttpClient<JobSearchService>();
+
+            services.AddScoped<ApplicationFacade>();
 
             // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
