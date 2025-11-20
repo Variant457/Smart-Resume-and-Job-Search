@@ -1,4 +1,5 @@
-﻿using Smart_Resume_Job_Search_App.Domain;
+﻿using DocumentFormat.OpenXml.Office.CustomUI;
+using Smart_Resume_Job_Search_App.Domain;
 using Smart_Resume_Job_Search_App.States;
 using System.Diagnostics;
 using System.Text;
@@ -64,23 +65,9 @@ namespace Smart_Resume_Job_Search_App.AppServices
             }
 
             json = json.Trim();
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            ParsedResumeDto? parsedResume = null;
-            try
-            {
-                parsedResume = JsonSerializer.Deserialize<ParsedResumeDto>(json, options);
-            }
-            catch (JsonException ex)
-            {
-                Debug.WriteLine($"[AppWorkflow] Failed to deserialize parsed resume: {ex.Message}");
-                throw;
-            }
-
             Debug.WriteLine($"[AppWorkflow] Parsing completed successfully. Output: \n{json}");
+
+            var parsedResume = new ParsedResume(inputBlob.Sha256, json);
         }
     }
 
