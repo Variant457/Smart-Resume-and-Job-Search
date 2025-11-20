@@ -1,10 +1,16 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Smart_Resume_Job_Search_App.Data;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
+    /// Wraps calls to the Adzuna API and persists the resulting job postings.
     public class JobSearchService
     {
         private readonly HttpClient _httpClient;
@@ -19,35 +25,34 @@ namespace Smart_Resume_Job_Search_App.AppServices
             JobQueryBuilder queryBuilder,
             IConfiguration config)
         {
-            _httpClient = httpClient;
-            _db = db;
-            _queryBuilder = queryBuilder;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _db = db ?? throw new ArgumentNullException(nameof(db));
+            _queryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
 
-            // From appsettings.json
             _adzunaAppId = config["Adzuna:AppId"] ?? string.Empty;
             _adzunaAppKey = config["Adzuna:AppKey"] ?? string.Empty;
 
-            if (string.IsNullOrWhiteSpace(_adzunaAppId) ||
-                string.IsNullOrWhiteSpace(_adzunaAppKey))
+            if (string.IsNullOrWhiteSpace(_adzunaAppId) || string.IsNullOrWhiteSpace(_adzunaAppKey))
             {
                 Debug.WriteLine("[JobSearchService] WARNING: Adzuna AppId/AppKey are not configured.");
             }
         }
 
+        /// Searches Adzuna based on the parsed resume and stores the results.
         public async Task<IReadOnlyList<JobPosting>> SearchAndStoreAsync(
             ParsedResumeInfo parsed,
             CancellationToken ct = default)
         {
+            if (parsed == null) throw new ArgumentNullException(nameof(parsed));
+
             Debug.WriteLine("[JobSearchService] SearchAndStoreAsync start");
 
-            if (string.IsNullOrWhiteSpace(_adzunaAppId) ||
-                string.IsNullOrWhiteSpace(_adzunaAppKey))
+            if (string.IsNullOrWhiteSpace(_adzunaAppId) || string.IsNullOrWhiteSpace(_adzunaAppKey))
             {
-                Debug.WriteLine("[JobSearchService] Missing Adzuna credentials – skipping search.");
+                Debug.WriteLine("[JobSearchService] Aborting search – Adzuna credentials are missing.");
                 return Array.Empty<JobPosting>();
             }
 
-            // Build URL from parsed resume (uses one title + location)
             var url = _queryBuilder.Build(parsed, _adzunaAppId, _adzunaAppKey);
             Debug.WriteLine($"[JobSearchService] URL: {url}");
 
@@ -55,6 +60,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadFromJsonAsync<AdzunaResponse>(cancellationToken: ct);
+
             if (json?.results == null || json.results.Count == 0)
             {
                 Debug.WriteLine("[JobSearchService] No results from Adzuna");
@@ -75,6 +81,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
                     Url = r.redirect_url ?? string.Empty,
                     SalaryMin = r.salary_min,
                     SalaryMax = r.salary_max,
+                    PostedDate = r.created,
                     ParsedResumeInfoId = parsed.Id
                 };
 
@@ -104,6 +111,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             public string? redirect_url { get; set; }
             public CompanyInfo? company { get; set; }
             public LocationInfo? location { get; set; }
+            public DateTime? created { get; set; }
         }
 
         private sealed class CompanyInfo
