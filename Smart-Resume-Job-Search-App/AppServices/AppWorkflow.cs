@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
@@ -13,13 +14,16 @@ namespace Smart_Resume_Job_Search_App.AppServices
         private readonly InputBlob inputBlob;
         private readonly TextExtractionService textExtractionService;
         private readonly AppDbContext dbContext;
+        private readonly JobSearchService jobSearchService;
+
         IAppState curState;
 
-        public AppWorkflow(InputBlob inputBlob, TextExtractionService textExtractionService, AppDbContext dbContext)
+        public AppWorkflow(InputBlob inputBlob, TextExtractionService textExtractionService, AppDbContext dbContext, JobSearchService jobSearchService)
         {
             this.inputBlob = inputBlob;
             this.textExtractionService = textExtractionService;
             this.dbContext = dbContext;
+            this.jobSearchService = jobSearchService;
         }
 
         public void SetState()
@@ -91,7 +95,27 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
             await dbContext.SaveChangesAsync();
             Debug.WriteLine("[AppWorkflow] Parsed resume saved to database.");
+
+            curState.ExitState();
+            curState = new SearchingState(this);
+            curState.EnterState();
         }
+
+        public async Task SearchJobs()
+        {
+            var parsed = await dbContext.LatestParsedResume.SingleOrDefaultAsync();
+            if(parsed == null)
+            {
+                Debug.WriteLine("[AppWorkflow] No parsed resume found for job search.");
+                return;
+            }
+
+            Debug.WriteLine("[AppWorkflow] Starting job search based on parsed resume.");
+
+            var postings = await jobSearchService.SearchAndStoreAsync(parsed);
+
+            Debug.WriteLine($"[AppWorkflow] Job search completed. Found and stored {postings.Count} job postings.");
+        } 
     }
 
     public class ParsedResumeDto
@@ -143,6 +167,9 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
         [JsonPropertyName("interests")]
         public List<string>? Interests { get; set; }
+
+        [JsonPropertyName("recommended_job_titles")]
+        public List<string>? RecommendedJobTitles { get; set; }
     }
 
     public class ProfileDto

@@ -142,6 +142,8 @@ with exactly the following keys:
   ] | null,
 
   "interests": string[] | null          // free form: ["climbing", "urban photography", ...]
+
+  "recommended_job_titles": string[]   // inferred list of suitable job titles based on the resume, ordered from strongest match to weakest
 }
 
 
@@ -149,8 +151,16 @@ Rules:
 - Always include every key shown above, even if the value is null.
 - Use null where the information is missing or cannot be confidently inferred.
 - Use arrays ([]) for list fields, even if they contain only one item.
+- For ALL fields except "recommended_job_titles", only extract or lightly normalize information that is clearly supported by the resume text. Do NOT invent employers, degrees, dates, or skills that are not implied.
+- For "recommended_job_titles":
+  - Infer 5 to 10 standardized job titles the candidate is likely qualified for.
+  - Base this ONLY on the resume's skills, experience, education, headline, and summary.
+  - Use short, conventional titles that would commonly appear in job postings, e.g. "Software Engineer", "Data Analyst", "Registered Nurse", "Project Manager".
+  - Do not include company names, locations, or phrases like "seeking", "remote", "entry-level".
+  - Order the array from strongest match (index 0) to weaker matches.
 - Do NOT include any comments, explanations, or extra keys.
 - Do NOT wrap the JSON in markdown or any additional text.
+
 """
         return f"""{schema}
 

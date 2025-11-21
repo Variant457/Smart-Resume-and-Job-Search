@@ -19,8 +19,8 @@ namespace Smart_Resume_Job_Search_App.AppServices
         public string Build(
             string appId,
             string appKey,
-            string jobTitle,
             string location,
+            string? jobTitle = null,
             int? salaryMin = null,
             bool? fullTime = null,
             bool? permanent = null,
@@ -79,19 +79,18 @@ namespace Smart_Resume_Job_Search_App.AppServices
         }
 
         /// Overload for ParsedResumeInfo (one title + location).
-        public string Build(ParsedResumeInfo parsed, string appId, string appKey)
+        public string Build(ParsedResumeRecord parsed, string appId, string appKey, string jobTitle)
         {
             if (parsed == null)
                 throw new ArgumentNullException(nameof(parsed));
 
-            var jobTitle = parsed.PrimaryTitle ?? string.Empty;
             var location = parsed.Location ?? string.Empty;
 
             return Build(
                 appId: appId,
                 appKey: appKey,
-                jobTitle: jobTitle,
-                location: location
+                location: location,
+                jobTitle: jobTitle
             );
         }
     }

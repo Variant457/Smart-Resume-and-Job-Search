@@ -7,6 +7,8 @@ using System.Diagnostics;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
 
 namespace Smart_Resume_Job_Search_App
 {

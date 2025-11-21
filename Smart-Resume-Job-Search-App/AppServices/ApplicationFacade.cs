@@ -9,11 +9,13 @@ namespace Smart_Resume_Job_Search_App.AppServices
     {
         private readonly TextExtractionService textExtractionService;
         private readonly AppDbContext db;
+        private readonly JobSearchService jobSearchService;
 
-        public ApplicationFacade(TextExtractionService textExtractionService, AppDbContext db)
+        public ApplicationFacade(TextExtractionService textExtractionService, AppDbContext db, JobSearchService jobSearchService)
         {
             this.textExtractionService = textExtractionService;
             this.db = db;
+            this.jobSearchService = jobSearchService;
         }
 
         public bool HasPreviousResume()
@@ -26,7 +28,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
         {
             Debug.WriteLine($"[ApplicationFacade] UploadResume: {input?.FileName} size={input?.Content?.Length}");
 
-            var workflow = new AppWorkflow(input, textExtractionService, db);
+            var workflow = new AppWorkflow(input, textExtractionService, db, jobSearchService);
             workflow.SetState();
 
             await Task.CompletedTask;
