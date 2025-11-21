@@ -50,7 +50,6 @@ namespace Smart_Resume_Job_Search_App.Presentation
             this.facade = facade;
             this.net = net;
 
-            Debug.WriteLine("[HomeViewModel] .ctor start");
             IsUploadEnabled = false;
             IsJobSearchVisible = false;
             IsJobSearchEnabled = false;
@@ -58,7 +57,6 @@ namespace Smart_Resume_Job_Search_App.Presentation
 
             StartJobSearchCommand = new DelegateCommand(async _ => await StartJobSearch(), _ => IsJobSearchEnabled);
             OpenHistoryCommand = new DelegateCommand(async _ => await OpenHistory(), _ => IsHistoryVisible);
-            Debug.WriteLine("[HomeViewModel] .ctor end");
         }
 
         public void OnLoaded()

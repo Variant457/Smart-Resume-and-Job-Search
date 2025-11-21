@@ -15,48 +15,47 @@ namespace Smart_Resume_Job_Search_App.UINav
             this.nav = nav;
             this.vmFactory = vmFactory;
             this.facade = facade;
-            Debug.WriteLine("[AppFlow] .ctor");
         }
 
         public Task Start()
         {
-            Debug.WriteLine("[AppFlow] Start invoked");
+            Debug.WriteLine("[AppCoordinator] Start invoked");
             return nav.ReplaceRoot<HomeViewModel>();
         }
 
         public async Task StartSearch()
         {
-            Debug.WriteLine("[AppFlow] StartSearch invoked");
+            Debug.WriteLine("[AppCoordinator] StartSearch invoked");
             await Task.CompletedTask; //TODO
         }
 
         public async Task ShowResults()
         {
-            Debug.WriteLine("[AppFlow] ShowResults invoked");
+            Debug.WriteLine("[AppCoordinator] ShowResults invoked");
             await Task.CompletedTask; //TODO
         }
 
         public async Task StartOptimizing()
         {
-            Debug.WriteLine("[AppFlow] StartOptimizing invoked");
+            Debug.WriteLine("[AppCoordinator] StartOptimizing invoked");
             await Task.CompletedTask; //TODO
         }
 
         public async Task ShowOptimized()
         {
-            Debug.WriteLine("[AppFlow] ShowOptimized invoked");
+            Debug.WriteLine("[AppCoordinator] ShowOptimized invoked");
             await Task.CompletedTask; //TODO
         }
 
         public Task BackToHome()
         {
-            Debug.WriteLine("[AppFlow] BackToHome invoked");
+            Debug.WriteLine("[AppCoordinator] BackToHome invoked");
             return nav.ReplaceRoot<HomeViewModel>();
         }
 
         public Task BackToResults()
         {
-            Debug.WriteLine("[AppFlow] BackToResults invoked");
+            Debug.WriteLine("[AppCoordinator] BackToResults invoked");
             return nav.GoBack();
         }
     }
