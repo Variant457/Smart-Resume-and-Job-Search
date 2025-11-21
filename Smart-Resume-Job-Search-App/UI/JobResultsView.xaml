@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Smart_Resume_Job_Search_App.UI.JobResultsView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:Smart_Resume_Job_Search_App.Presentation"
+    Title="Job Matches">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Back" Command="{Binding BackCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ContentPage.Content>
+        <Grid Padding="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Label
+                Grid.Row="0"
+                Text="Recommended Jobs"
+                FontSize="24"
+                FontAttributes="Bold"
+                Margin="0,0,0,8" />
+            
+            <!-- Results list -->
+            <CollectionView
+                Grid.Row="1"
+                IsVisible="True"
+                ItemsSource="{Binding Jobs}"
+                SelectionMode="None">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="0,4"
+                               Padding="12"
+                               HasShadow="True"
+                               CornerRadius="10">
+                            <StackLayout Spacing="4">
+                                <Label Text="{Binding Title}"
+                                       FontAttributes="Bold"
+                                       FontSize="Medium" />
+                                <Label Text="{Binding Company}"
+                                       FontSize="Small" />
+                                <Label Text="{Binding Location}"
+                                       FontSize="Small" />
+
+                                <Label FontSize="Small">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Salary: " FontAttributes="Bold" />
+                                            <Span Text="{Binding MinSalary, StringFormat='{}{0:C0}'}" />
+                                            <Span Text=" - " />
+                                            <Span Text="{Binding MaxSalary, StringFormat='{}{0:C0}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Button
+                                    Text="View Job"
+                                    HorizontalOptions="End"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenJobCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

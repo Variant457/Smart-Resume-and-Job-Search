@@ -66,8 +66,11 @@ namespace Smart_Resume_Job_Search_App
             services.AddSingleton<ITextExtractor, DocxExtractor>();
             services.AddSingleton<ITextExtractor, PdfExtractor>();
 
+          
             // ViewModels
             services.AddTransient<HomeViewModel>();
+            services.AddTransient<LoadingViewModel>();
+            services.AddTransient<JobResultsViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();
