@@ -40,39 +40,44 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
         public async Task ParseResume()
         {
-            var text = textExtractionService.Extract(inputBlob);
-
-            var baseDir = AppContext.BaseDirectory;
-            var projectRoot = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
-            var scriptPath = Path.Combine(projectRoot, "AI", "ParsingModel.py");
-            var psi = new ProcessStartInfo
+            var (json, err, exitCode) = await Task.Run(() =>
             {
-                FileName = "python",
-                Arguments = $"\"{scriptPath}\"",
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            };
+                var text = textExtractionService.Extract(inputBlob);
 
-            using var process = new Process { StartInfo = psi };
-            process.Start();
+                var baseDir = AppContext.BaseDirectory;
+                var projectRoot = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
+                var scriptPath = Path.Combine(projectRoot, "AI", "ParsingModel.py");
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "python",
+                    Arguments = $"\"{scriptPath}\"",
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
+                };
 
-            using (var sw = process.StandardInput)
+                using var process = new Process { StartInfo = psi };
+                process.Start();
+
+                using (var sw = process.StandardInput)
+                {
+                    sw.WriteLine(text);
+                }
+
+                string json = process.StandardOutput.ReadToEnd();
+                string err = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                return (json, err, process.ExitCode);
+            });
+
+            if (exitCode != 0)
             {
-                sw.WriteLine(text);
-            }
-
-            string json = process.StandardOutput.ReadToEnd();
-            string err = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
-            if (process.ExitCode != 0)
-            {
-                Debug.WriteLine($"[AppWorkflow] Parsing process exited with code {process.ExitCode}. Error: {err}");
+                Debug.WriteLine($"[AppWorkflow] Parsing process exited with code {exitCode}. Error: {err}");
                 throw new Exception("Parsing process failed.");
             }
 
