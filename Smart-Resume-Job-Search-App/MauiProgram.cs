@@ -51,8 +51,6 @@ namespace Smart_Resume_Job_Search_App
             // JobQueryBuilder, IConfiguration injected automatically)
             services.AddHttpClient<JobSearchService>();
 
-            services.AddScoped<ApplicationFacade>();
-
             // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
             services.AddSingleton<AppWorkflow>();               // register workflow for DI (even though ApplicationFacade currently 'new's it)

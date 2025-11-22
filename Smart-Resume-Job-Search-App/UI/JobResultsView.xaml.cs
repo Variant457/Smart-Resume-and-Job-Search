@@ -1,5 +1,6 @@
-﻿using Smart_Resume_Job_Search_App.Models;
+﻿using Smart_Resume_Job_Search_App.Data;
 using Smart_Resume_Job_Search_App.Presentation;
+using System.Threading.Tasks;
 
 namespace Smart_Resume_Job_Search_App.UI
 {
@@ -13,8 +14,14 @@ namespace Smart_Resume_Job_Search_App.UI
             _viewModel = viewModel;
             BindingContext = _viewModel;
         }
+        
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await _viewModel.InitializeAsync();
+        }
 
-        public void Initialize(IEnumerable<JobPosting> jobs)
+        public void Initialize(List<JobPosting> jobs)
         {
             _viewModel.Load(jobs);
         }

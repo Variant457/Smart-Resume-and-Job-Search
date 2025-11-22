@@ -1,28 +1,36 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Microsoft.Maui.ApplicationModel;
-using Smart_Resume_Job_Search_App.Models;
+using Smart_Resume_Job_Search_App.Data;
+using Smart_Resume_Job_Search_App.AppServices;
 
 namespace Smart_Resume_Job_Search_App.Presentation
 {
     public class JobResultsViewModel
     {
         public ObservableCollection<JobPosting> Jobs { get; } = new();
-
         public ICommand OpenJobCommand { get; }
 
-        public JobResultsViewModel()
+        private readonly ApplicationFacade facade;
+
+        public JobResultsViewModel(ApplicationFacade facade)
         {
+            this.facade = facade;
+
             OpenJobCommand = new Command<JobPosting>(async job =>
             {
-                if (job == null) return;
-                if (string.IsNullOrWhiteSpace(job.Url)) return;
+                if (job == null || string.IsNullOrWhiteSpace(job.Url)) return;
 
                 await Launcher.OpenAsync(job.Url);
             });
         }
 
-        public void Load(IEnumerable<JobPosting> jobs)
+        public async Task InitializeAsync()
+        {
+            var jobs = await facade.GetJobPostings();
+            Load(jobs);
+        }
+
+        public void Load(List<JobPosting> jobs)
         {
             Jobs.Clear();
             if (jobs == null) return;

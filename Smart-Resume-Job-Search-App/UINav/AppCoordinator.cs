@@ -1,4 +1,5 @@
 ﻿using Smart_Resume_Job_Search_App.AppServices;
+using Smart_Resume_Job_Search_App.Domain;
 using Smart_Resume_Job_Search_App.Presentation;
 using System.Diagnostics;
 
@@ -23,9 +24,25 @@ namespace Smart_Resume_Job_Search_App.UINav
             return nav.ReplaceRoot<HomeViewModel>();
         }
 
-        public async Task StartSearch()
+        public async Task StartSearch(InputBlob file)
         {
             Debug.WriteLine("[AppCoordinator] StartSearch invoked");
+            await nav.Show<LoadingViewModel>();
+            await facade.UploadResume(file);
+
+            int retries = 10;
+            while(retries > 0)
+            {
+                var matches = await facade.GetJobPostings();
+                if (matches != null && matches.Count > 0)
+                {
+                    break;
+                }
+                await Task.Delay(15000);
+                retries--;
+            }
+
+            await nav.ReplaceRoot<JobResultsViewModel>();
             await Task.CompletedTask; //TODO
         }
 
