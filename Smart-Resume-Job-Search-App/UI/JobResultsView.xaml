@@ -50,9 +50,9 @@
                                     <Label.FormattedText>
                                         <FormattedString>
                                             <Span Text="Salary: " FontAttributes="Bold" />
-                                            <Span Text="{Binding MinSalary, StringFormat='{}{0:C0}'}" />
+                                            <Span Text="{Binding SalaryMin, StringFormat='{}{0:C0}'}" />
                                             <Span Text=" - " />
-                                            <Span Text="{Binding MaxSalary, StringFormat='{}{0:C0}'}" />
+                                            <Span Text="{Binding SalaryMax, StringFormat='{}{0:C0}'}" />
                                         </FormattedString>
                                     </Label.FormattedText>
                                 </Label>

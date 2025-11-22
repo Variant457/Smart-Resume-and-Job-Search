@@ -28,22 +28,16 @@ namespace Smart_Resume_Job_Search_App.UINav
         {
             Debug.WriteLine("[AppCoordinator] StartSearch invoked");
             await nav.Show<LoadingViewModel>();
-            await facade.UploadResume(file);
-
-            int retries = 10;
-            while(retries > 0)
+            try
             {
-                var matches = await facade.GetJobPostings();
-                if (matches != null && matches.Count > 0)
-                {
-                    break;
-                }
-                await Task.Delay(15000);
-                retries--;
+                await facade.UploadResume(file);
+                await nav.ReplaceRoot<JobResultsViewModel>();
             }
-
-            await nav.ReplaceRoot<JobResultsViewModel>();
-            await Task.CompletedTask; //TODO
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AppCoordinator] Error during search: {ex}");
+                await nav.GoBack();
+            }
         }
 
         public async Task ShowResults()

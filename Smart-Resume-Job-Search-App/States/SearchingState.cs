@@ -12,7 +12,7 @@ namespace Smart_Resume_Job_Search_App.States
             Debug.WriteLine("Searching State initialized.");
         }
 
-        public async void EnterState()
+        public async Task EnterState()
         {
             Debug.WriteLine("Entering Searching State: Searching for job matches.");
             await appWorkflow.SearchJobs();

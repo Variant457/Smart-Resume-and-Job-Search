@@ -29,9 +29,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             Debug.WriteLine($"[ApplicationFacade] UploadResume: {input?.FileName} size={input?.Content?.Length}");
 
             var workflow = new AppWorkflow(input, textExtractionService, db, jobSearchService);
-            workflow.SetState();
-
-            await Task.CompletedTask;
+            await workflow.SetState();
         }
 
         public async Task<List<JobPosting>> GetJobPostings()

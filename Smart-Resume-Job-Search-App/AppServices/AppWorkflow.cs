@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
@@ -26,12 +25,19 @@ namespace Smart_Resume_Job_Search_App.AppServices
             this.jobSearchService = jobSearchService;
         }
 
-        public void SetState()
+        public async Task SetState()
         {
             curState = new ParsingState(this);
-            curState.EnterState();
+            await curState.EnterState();
         }
-        
+
+        public async Task TransitionToAsync(IAppState newState)
+        {
+            curState.ExitState();
+            curState = newState;
+            await curState.EnterState();
+        }
+
         public async Task ParseResume()
         {
             var text = textExtractionService.Extract(inputBlob);
@@ -96,9 +102,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             await dbContext.SaveChangesAsync();
             Debug.WriteLine("[AppWorkflow] Parsed resume saved to database.");
 
-            curState.ExitState();
-            curState = new SearchingState(this);
-            curState.EnterState();
+            await TransitionToAsync(new SearchingState(this));
         }
 
         public async Task SearchJobs()
@@ -109,6 +113,10 @@ namespace Smart_Resume_Job_Search_App.AppServices
                 Debug.WriteLine("[AppWorkflow] No parsed resume found for job search.");
                 return;
             }
+
+            var oldJobs = await dbContext.JobPostings.ToListAsync();
+            dbContext.JobPostings.RemoveRange(oldJobs);
+            await dbContext.SaveChangesAsync();
 
             Debug.WriteLine("[AppWorkflow] Starting job search based on parsed resume.");
 
