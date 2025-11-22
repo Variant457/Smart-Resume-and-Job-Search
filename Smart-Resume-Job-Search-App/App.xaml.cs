@@ -19,7 +19,9 @@ namespace Smart_Resume_Job_Search_App
         {
             Debug.WriteLine("[App] CreateWindow start");
 
-            var window = new Window(new AppShell());
+            var shell = new AppShell();
+            this.MainPage = shell;
+            var window = new Window(shell);
             StartFlowOnce();
 
             Debug.WriteLine("[App] CreateWindow end");
