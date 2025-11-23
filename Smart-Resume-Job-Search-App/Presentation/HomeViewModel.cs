@@ -55,8 +55,8 @@ namespace Smart_Resume_Job_Search_App.Presentation
             IsJobSearchEnabled = false;
             IsHistoryVisible = false;
 
-            StartJobSearchCommand = new DelegateCommand(async _ => await StartJobSearch(), _ => IsJobSearchEnabled);
             OpenHistoryCommand = new DelegateCommand(async _ => await OpenHistory(), _ => IsHistoryVisible);
+            StartJobSearchCommand = new DelegateCommand(async _ => await appFlow.ShowResults(), _ => IsJobSearchEnabled);
         }
 
         public void OnLoaded()
@@ -78,23 +78,21 @@ namespace Smart_Resume_Job_Search_App.Presentation
         public async Task UploadResume(InputBlob input)
         {
             Debug.WriteLine($"[HomeViewModel] UploadResume: {input?.FileName} size={input?.Content?.Length}");
-            await facade.UploadResume(input);
+            await appFlow.StartSearch(input);
         }
 
         public ICommand StartJobSearchCommand { get; }
         public ICommand OpenHistoryCommand { get; }
 
-        private Task StartJobSearch()
-        {
-            Debug.WriteLine("[HomeViewModel] StartJobSearch");
-            return appFlow.StartSearch();
-        }
-
-        private Task OpenHistory()
+        private async Task OpenHistory()
         {
             Debug.WriteLine("[HomeViewModel] OpenHistory");
-            var last = facade.GetHistory()?.LastOrDefault();
-            return last is null ? Task.CompletedTask : appFlow.ShowResults();
+            var postings = await facade.GetJobPostings();
+            var last = postings.LastOrDefault();
+            if(last is not null)
+            {
+                await appFlow.ShowResults();
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

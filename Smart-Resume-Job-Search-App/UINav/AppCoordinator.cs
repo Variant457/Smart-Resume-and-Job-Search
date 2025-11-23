@@ -1,4 +1,5 @@
 ﻿using Smart_Resume_Job_Search_App.AppServices;
+using Smart_Resume_Job_Search_App.Domain;
 using Smart_Resume_Job_Search_App.Presentation;
 using System.Diagnostics;
 
@@ -23,16 +24,26 @@ namespace Smart_Resume_Job_Search_App.UINav
             return nav.ReplaceRoot<HomeViewModel>();
         }
 
-        public async Task StartSearch()
+        public async Task StartSearch(InputBlob file)
         {
             Debug.WriteLine("[AppCoordinator] StartSearch invoked");
-            await Task.CompletedTask; //TODO
+            await nav.Show<LoadingViewModel>();
+            try
+            {
+                await facade.UploadResume(file);
+                await nav.ReplaceRoot<JobResultsViewModel>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AppCoordinator] Error during search: {ex}");
+                await nav.GoBack();
+            }
         }
 
-        public async Task ShowResults()
+        public Task ShowResults()
         {
             Debug.WriteLine("[AppCoordinator] ShowResults invoked");
-            await Task.CompletedTask; //TODO
+            return nav.ReplaceRoot<JobResultsViewModel>();
         }
 
         public async Task StartOptimizing()

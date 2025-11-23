@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Smart_Resume_Job_Search_App.Infrastructure;
 using Smart_Resume_Job_Search_App.Presentation;
+using Smart_Resume_Job_Search_App.UI;
 using Smart_Resume_Job_Search_App.UINav;
 using Smart_Resume_Job_Search_App.AppServices;
 using System.Diagnostics;
@@ -51,8 +52,6 @@ namespace Smart_Resume_Job_Search_App
             // JobQueryBuilder, IConfiguration injected automatically)
             services.AddHttpClient<JobSearchService>();
 
-            services.AddScoped<ApplicationFacade>();
-
             // App services
             services.AddSingleton<INetworkStatus, NetworkStatus>();
             services.AddSingleton<AppWorkflow>();               // register workflow for DI (even though ApplicationFacade currently 'new's it)
@@ -71,6 +70,10 @@ namespace Smart_Resume_Job_Search_App
             services.AddTransient<HomeViewModel>();
             services.AddTransient<LoadingViewModel>();
             services.AddTransient<JobResultsViewModel>();
+
+            services.AddTransient<HomeView>();
+            services.AddTransient<LoadingView>();
+            services.AddTransient<JobResultsView>();
 
 #if DEBUG
             builder.Logging.AddDebug();

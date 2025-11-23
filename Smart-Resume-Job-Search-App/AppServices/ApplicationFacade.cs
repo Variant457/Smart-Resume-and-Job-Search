@@ -1,7 +1,7 @@
 ﻿using Smart_Resume_Job_Search_App.Domain;
 using Smart_Resume_Job_Search_App.Data;
 using System.Diagnostics;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
@@ -29,18 +29,15 @@ namespace Smart_Resume_Job_Search_App.AppServices
             Debug.WriteLine($"[ApplicationFacade] UploadResume: {input?.FileName} size={input?.Content?.Length}");
 
             var workflow = new AppWorkflow(input, textExtractionService, db, jobSearchService);
-            workflow.SetState();
-
-            await Task.CompletedTask;
+            await Task.Run(workflow.SetState);
         }
 
-        public string? GetHistory()
+        public async Task<List<JobPosting>> GetJobPostings()
         {
-            Debug.WriteLine("[ApplicationFacade] GetHistory");
-
-            // TODO: pull from _db.JobPostings / _db.TailoredResumes / _db.OptimizationResults
-            // and format whatever "history" to show.
-            return null;
+            Debug.WriteLine("[ApplicationFacade] GetJobPostings");
+            return await db.JobPostings
+                .OrderByDescending(j => j.PostedDate)
+                .ToListAsync();
         }
     }
 }

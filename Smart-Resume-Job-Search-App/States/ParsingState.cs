@@ -13,7 +13,7 @@ namespace Smart_Resume_Job_Search_App.States
             Debug.WriteLine("Parsing State initialized.");
         }
 
-        public async void EnterState()
+        public async Task EnterState()
         {
             Debug.WriteLine("Entering Parsing State: Parsing resumes and job descriptions.");
 
