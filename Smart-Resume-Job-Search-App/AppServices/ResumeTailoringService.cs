@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Smart_Resume_Job_Search_App.Data;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -31,13 +30,32 @@ namespace Smart_Resume_Job_Search_App.AppServices
                 throw new Exception($"[ResumeTailoringService] Tailoring Failed. Error: {err}");
             }
 
+            using var doc = JsonDocument.Parse(outputJson);
+            var root = doc.RootElement;
+            if(!root.TryGetProperty("tailored", out var tailoredElement))
+            {
+                throw new Exception("Tailoring JSON missing 'tailored' property");
+            }
+            if(!tailoredElement.TryGetProperty("full_resume_text", out var fullResumeTextElement))
+            {
+                throw new Exception("Tailoring JSON missing 'full_resume_text'");
+            }
+
+            var fullResumeText = fullResumeTextElement.GetString() ?? string.Empty;
+            var ext = GetExtensionForMime(baseResume.origMimeType);
+            var safeJobId = string.Join("_", job.JobId.Split(Path.GetInvalidFileNameChars()));
+            var fileNameOnly = $"tailored_resume_{safeJobId}{ext}";
+            var dir = GetTailoredResumeDirectory();
+            var fullPath = Path.Combine(dir, fileNameOnly);
+            await File.WriteAllTextAsync(fullPath, fullResumeText, Encoding.UTF8);
+
             var tailoredResume = new TailoredResume
             {
                 ParsedResumeInfoId = baseResume.Id,
                 JobPostingId = job.Id,
                 JsonResult = outputJson,
                 CreatedAt = DateTime.UtcNow,
-                FileName = $"tailored_resume_{job.JobId}.json"
+                FileName = fullPath
             };
 
             db.TailoredResumes.Add(tailoredResume);
@@ -89,6 +107,26 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
                 return (output, err);
             });
+        }
+
+        private static string GetExtensionForMime(string mime)
+        {
+            return mime switch
+            {
+                "application/pdf" => ".pdf",
+                "application/msword" => ".doc",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ".docx",
+                "text/plain" => ".txt",
+                _ => ".txt"
+            };
+        }
+
+        private static string GetTailoredResumeDirectory()
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var dir = Path.Combine(baseDir, "TailoredResumes");
+            Directory.CreateDirectory(dir);
+            return dir;
         }
     }
 }

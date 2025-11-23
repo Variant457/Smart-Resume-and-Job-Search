@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Smart_Resume_Job_Search_App.Data;
 using System.Text.Json;
-using System.Linq;
 
 namespace Smart_Resume_Job_Search_App.AppServices
 {
@@ -60,46 +58,56 @@ namespace Smart_Resume_Job_Search_App.AppServices
             }
 
             var allPostings = new List<JobPosting>();
-            var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var existingIds = _db.JobPostings
+                .Select(x => x.JobId)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var seenIds = new HashSet<string>(existingIds, StringComparer.OrdinalIgnoreCase);
+
+            const int maxPagesPerTitle = 2;
+            const int resultsPerPage = 3;
 
             foreach (var title in titles)
             {
-                var url = _queryBuilder.Build(parsed, _adzunaAppId, _adzunaAppKey, title);
-                Debug.WriteLine($"[JobSearchService] Querying Adzuna for title: {title}");
-
-                using var response = await _httpClient.GetAsync(url, ct);
-                response.EnsureSuccessStatusCode();
-
-                await using var stream = await response.Content.ReadAsStreamAsync(ct);
-                var json = await JsonSerializer.DeserializeAsync<AdzunaResponse>(stream, cancellationToken: ct);
-
-                if (json?.results == null || json.results.Count == 0)
+                for (var page = 1; page <= maxPagesPerTitle; page++)
                 {
-                    Debug.WriteLine($"[JobSearchService] No Results found for {title}");
-                    return Array.Empty<JobPosting>();
-                }
+                    var url = _queryBuilder.Build(parsed, _adzunaAppId, _adzunaAppKey, title, page, resultsPerPage);
+                    Debug.WriteLine($"[JobSearchService] Querying Adzuna for title: {title}, page: {page}");
 
-                foreach (var result in json.results)
-                {
-                    var jobId = result.id;
-                    if (!seenIds.Add(jobId)) continue;
+                    using var response = await _httpClient.GetAsync(url, ct);
+                    response.EnsureSuccessStatusCode();
 
-                    var jp = new JobPosting
+                    await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                    var json = await JsonSerializer.DeserializeAsync<AdzunaResponse>(stream, cancellationToken: ct);
+
+                    if (json?.results == null || json.results.Count == 0)
                     {
-                        JobId = jobId,
-                        Title = result.title ?? string.Empty,
-                        Company = result.company?.display_name ?? string.Empty,
-                        Location = result.location?.display_name ?? string.Empty,
-                        Description = result.description ?? string.Empty,
-                        Url = result.redirect_url ?? string.Empty,
-                        SalaryMin = result.salary_min,
-                        SalaryMax = result.salary_max,
-                        PostedDate = result.created,
-                        ParsedResumeInfoId = parsed.Id
-                    };
+                        Debug.WriteLine($"[JobSearchService] No Results found for {title}");
+                        break;
+                    }
 
-                    allPostings.Add(jp);
-                    _db.JobPostings.Add(jp);
+                    foreach (var result in json.results)
+                    {
+                        var jobId = result.id;
+                        if (string.IsNullOrWhiteSpace(jobId)) continue;
+                        if (!seenIds.Add(jobId)) continue;
+
+                        var jp = new JobPosting
+                        {
+                            JobId = jobId,
+                            Title = result.title ?? string.Empty,
+                            Company = result.company?.display_name ?? string.Empty,
+                            Location = result.location?.display_name ?? string.Empty,
+                            Description = result.description ?? string.Empty,
+                            Url = result.redirect_url ?? string.Empty,
+                            SalaryMin = result.salary_min,
+                            SalaryMax = result.salary_max,
+                            PostedDate = result.created,
+                            ParsedResumeInfoId = parsed.Id
+                        };
+
+                        allPostings.Add(jp);
+                        _db.JobPostings.Add(jp);
+                    }
                 }
             }
 

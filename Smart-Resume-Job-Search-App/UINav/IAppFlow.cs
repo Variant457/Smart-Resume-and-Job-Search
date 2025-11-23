@@ -1,5 +1,6 @@
 ﻿
 
+using Smart_Resume_Job_Search_App.Data;
 using Smart_Resume_Job_Search_App.Domain;
 
 namespace Smart_Resume_Job_Search_App.UINav
@@ -9,8 +10,8 @@ namespace Smart_Resume_Job_Search_App.UINav
         Task Start();
         Task StartSearch(InputBlob blob);
         Task ShowResults();
-        Task StartOptimizing();
-        Task ShowOptimized();
+        Task TailorResume(JobPosting job);
+        Task StartSearchFromLatestResume();
         Task BackToHome();
         Task BackToResults();
     }

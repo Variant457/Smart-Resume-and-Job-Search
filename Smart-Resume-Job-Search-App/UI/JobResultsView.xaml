@@ -51,6 +51,13 @@
 
                                 <StackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
 
+                                    <ActivityIndicator
+                                        IsRunning="{Binding IsBusy}" 
+                                        IsVisible="{Binding IsBusy}" 
+                                        WidthRequest="20" 
+                                        HeightRequest="20" 
+                                        HorizontalOptions="Center"/>
+
                                     <Button Text="Tailor Resume" 
                                             FontSize="10"
                                             HeightRequest="36"

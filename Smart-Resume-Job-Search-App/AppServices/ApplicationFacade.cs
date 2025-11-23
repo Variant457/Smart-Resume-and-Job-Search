@@ -58,10 +58,21 @@ namespace Smart_Resume_Job_Search_App.AppServices
                 .FirstAsync();
         }
 
-        public async Task TailorResume(JobPosting job) 
+        public async Task<TailoredResume> TailorResume(JobPosting job) 
         { 
             var resume = await GetLatestParsedResume();
-            await resumeTailoringService.TailorResume(job, resume);
+            return await resumeTailoringService.TailorResume(job, resume);
+        }
+
+        public async Task SearchJobsWithLatestResume()
+        {
+            Debug.WriteLine("[ApplicationFacade] SearchJobsWithLatestResume");
+            var parsed = await db.LatestParsedResume.SingleOrDefaultAsync();
+            
+            Debug.WriteLine($"[ApplicationFacade] Found parsed resume: {parsed?.Id}");
+            var postings = await jobSearchService.SearchAndStoreAsync(parsed);
+
+            Debug.WriteLine($"[ApplicationFacade] Found {postings.Count} job postings");
         }
     }
 }

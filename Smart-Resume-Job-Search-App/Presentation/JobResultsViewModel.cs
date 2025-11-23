@@ -3,7 +3,8 @@ using System.Windows.Input;
 using Smart_Resume_Job_Search_App.Data;
 using Smart_Resume_Job_Search_App.AppServices;
 using Smart_Resume_Job_Search_App.UINav;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Smart_Resume_Job_Search_App.Presentation
 {
@@ -42,7 +43,7 @@ namespace Smart_Resume_Job_Search_App.Presentation
             foreach (var job in jobPostings)
             {
                 var tailored = await facade.GetLatestTailoredResume(job.Id);
-                Jobs.Add(new JobItemViewModel(job, facade, tailored, latestResume));
+                Jobs.Add(new JobItemViewModel(job, facade, tailored, latestResume, appFlow));
             }
         }
 
@@ -55,7 +56,7 @@ namespace Smart_Resume_Job_Search_App.Presentation
             foreach (var job in jobs)
             {
                 var tailored = await facade.GetLatestTailoredResume(job.Id);
-                Jobs.Add(new JobItemViewModel(job, facade, tailored, latestResume));
+                Jobs.Add(new JobItemViewModel(job, facade, tailored, latestResume, appFlow));
             }
         }
     }
@@ -63,6 +64,7 @@ namespace Smart_Resume_Job_Search_App.Presentation
     public class JobItemViewModel : BindableObject
     {
         private readonly ApplicationFacade facade;
+        private readonly IAppFlow appFlow;
         public JobPosting Job { get; }
 
         public Color StatusColor { get; private set; }
@@ -74,10 +76,11 @@ namespace Smart_Resume_Job_Search_App.Presentation
         public ICommand TailorCommand { get; }
         public ICommand ViewTailoredCommand { get; }
 
-        public JobItemViewModel(JobPosting job, ApplicationFacade facade, TailoredResume? existingTailored, ParsedResumeRecord latestParsed)
+        public JobItemViewModel(JobPosting job, ApplicationFacade facade, TailoredResume? existingTailored, ParsedResumeRecord latestParsed, IAppFlow appFlow)
         {
             Job = job;
             this.facade = facade;
+            this.appFlow = appFlow;
 
             OpenJobCommand = new Command(async () =>
             {
@@ -121,23 +124,35 @@ namespace Smart_Resume_Job_Search_App.Presentation
 
         private async Task TailorAsync()
         {
+            Debug.WriteLine($"[JobItemViewModel] Starting Tailoring for Job.id = {Job.Id}, Job.JobId = {Job.JobId}");
             IsBusy = true;
             OnPropertyChanged(nameof(IsBusy));
             ((Command)TailorCommand).ChangeCanExecute();
 
             try
             {
-                await facade.TailorResume(Job);
-
                 var latestParsed = await facade.GetLatestParsedResume();
+                Debug.WriteLine($"[JobItemViewModel] LatestParsed at {latestParsed.ParsedAt}");
+                await appFlow.TailorResume(Job);
+                Debug.WriteLine("[JobItemViewModel] appFlow.TailorResume completed");
                 var tailored = await facade.GetLatestTailoredResume(Job.Id);
-                DetermineStatus(tailored, latestParsed);
+                Debug.WriteLine(tailored == null
+                    ? "[JobItemViewModel] GetLatestTailoredResume returned null"
+                    : $"[JobItemViewModel] Tailored resume CreatedAt={tailored.CreatedAt}");
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    DetermineStatus(tailored, latestParsed);
+                });
             }
             finally
             {
-                IsBusy = false;
-                OnPropertyChanged(nameof(IsBusy));
-                ((Command)TailorCommand).ChangeCanExecute();
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    IsBusy = false;
+                    OnPropertyChanged(nameof(IsBusy));
+                    ((Command)TailorCommand).ChangeCanExecute();
+                });
             }
         }
 

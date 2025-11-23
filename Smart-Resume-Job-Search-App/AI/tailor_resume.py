@@ -82,10 +82,11 @@ def rewrite_resume(resume_text: str, analysis: dict):
     Ask Ollama to tailor the resume to the job analysis.
 
     Expected JSON keys in response:
-      - tailored_summary  (string)
-      - experience        (array of rewritten experience entries/bullets)
-      - skills_section    (array of skills/phrases)
-      - gaps_and_questions (array of TODOs / missing info notes)
+      - tailored_summary      (string)
+      - experience            (array of rewritten experience entries/bullets)
+      - skills_section        (array of skills/phrases)
+      - gaps_and_questions    (array of TODOs / missing info notes)
+      - full_resume_text      (string: complete tailored resume text ready to save)
     """
     REWRITE_INSTRUCTIONS = f"""
 Return a single valid JSON object ONLY. Do NOT include any extra text.
@@ -98,11 +99,18 @@ Rules:
 - Rewrite bullets to be active, specific, outcome-focused.
 - Prefer wording from the job description where it is truthful.
 - Add "TODO:" markers where metrics or evidence are missing.
-- Output JSON with keys:
-    tailored_summary,
-    experience,
-    skills_section,
-    gaps_and_questions
+
+The JSON object MUST have these keys:
+- tailored_summary        (string)
+- experience              (array of strings)
+- skills_section          (array of strings)
+- gaps_and_questions      (array of strings)
+- full_resume_text        (string)
+
+full_resume_text MUST be a complete, ready-to-send resume:
+- Use clear sections (Summary, Experience, Skills, etc.).
+- Keep employers, titles, and dates identical to the original resume.
+- Use plain text formatting; use '-' for bullet points.
 
 Job Analysis:
 {json.dumps(analysis, ensure_ascii=False)}
