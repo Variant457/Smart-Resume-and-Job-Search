@@ -93,6 +93,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
                     SourceSha256 = parsedResume.sourceSha256,
                     RawJson = parsedResume.RawJson,
                     Location = parsedResume.Location,
+                    origMimeType = inputBlob.MimeType,
                     ParsedAt = parsedResume.ParsedAt
                 };
                 dbContext.LatestParsedResume.Add(record);
@@ -101,6 +102,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
                 existingRecord.SourceSha256 = parsedResume.sourceSha256;
                 existingRecord.RawJson = parsedResume.RawJson;
                 existingRecord.Location = parsedResume.Location;
+                existingRecord.origMimeType = inputBlob.MimeType;
                 existingRecord.ParsedAt = parsedResume.ParsedAt;
             }
 
@@ -118,10 +120,6 @@ namespace Smart_Resume_Job_Search_App.AppServices
                 Debug.WriteLine("[AppWorkflow] No parsed resume found for job search.");
                 return;
             }
-
-            var oldJobs = await dbContext.JobPostings.ToListAsync();
-            dbContext.JobPostings.RemoveRange(oldJobs);
-            await dbContext.SaveChangesAsync();
 
             Debug.WriteLine("[AppWorkflow] Starting job search based on parsed resume.");
 

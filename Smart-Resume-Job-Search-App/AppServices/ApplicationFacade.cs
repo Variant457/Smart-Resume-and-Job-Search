@@ -10,12 +10,14 @@ namespace Smart_Resume_Job_Search_App.AppServices
         private readonly TextExtractionService textExtractionService;
         private readonly AppDbContext db;
         private readonly JobSearchService jobSearchService;
+        private readonly ResumeTailoringService resumeTailoringService;
 
-        public ApplicationFacade(TextExtractionService textExtractionService, AppDbContext db, JobSearchService jobSearchService)
+        public ApplicationFacade(TextExtractionService textExtractionService, AppDbContext db, JobSearchService jobSearchService, ResumeTailoringService resumeTailoringService)
         {
             this.textExtractionService = textExtractionService;
             this.db = db;
             this.jobSearchService = jobSearchService;
+            this.resumeTailoringService = resumeTailoringService;
         }
 
         public bool HasPreviousResume()
@@ -38,6 +40,28 @@ namespace Smart_Resume_Job_Search_App.AppServices
             return await db.JobPostings
                 .OrderByDescending(j => j.PostedDate)
                 .ToListAsync();
+        }
+
+        public async Task<TailoredResume> GetLatestTailoredResume(int jobId)
+        {
+            Debug.WriteLine($"[ApplicationFacade] GetLatestTailoredResume for JobPostingId={jobId}");
+            return await db.TailoredResumes
+                .OrderByDescending(t => t.CreatedAt)
+                .FirstOrDefaultAsync(t => t.JobPostingId == jobId);
+        }
+
+        public async Task<ParsedResumeRecord> GetLatestParsedResume()
+        {
+            Debug.WriteLine("[ApplicationFacade] GetLatestParsedResume");
+            return await db.LatestParsedResume
+                .OrderByDescending(r => r.ParsedAt)
+                .FirstAsync();
+        }
+
+        public async Task TailorResume(JobPosting job) 
+        { 
+            var resume = await GetLatestParsedResume();
+            await resumeTailoringService.TailorResume(job, resume);
         }
     }
 }
