@@ -40,10 +40,10 @@ namespace Smart_Resume_Job_Search_App.UINav
             }
         }
 
-        public async Task ShowResults()
+        public Task ShowResults()
         {
             Debug.WriteLine("[AppCoordinator] ShowResults invoked");
-            await Task.CompletedTask; //TODO
+            return nav.ReplaceRoot<JobResultsViewModel>();
         }
 
         public async Task StartOptimizing()

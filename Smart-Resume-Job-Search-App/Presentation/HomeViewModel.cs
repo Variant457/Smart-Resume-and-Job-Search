@@ -56,6 +56,7 @@ namespace Smart_Resume_Job_Search_App.Presentation
             IsHistoryVisible = false;
 
             OpenHistoryCommand = new DelegateCommand(async _ => await OpenHistory(), _ => IsHistoryVisible);
+            StartJobSearchCommand = new DelegateCommand(async _ => await appFlow.ShowResults(), _ => IsJobSearchEnabled);
         }
 
         public void OnLoaded()
@@ -83,11 +84,15 @@ namespace Smart_Resume_Job_Search_App.Presentation
         public ICommand StartJobSearchCommand { get; }
         public ICommand OpenHistoryCommand { get; }
 
-        private Task OpenHistory()
+        private async Task OpenHistory()
         {
             Debug.WriteLine("[HomeViewModel] OpenHistory");
-            var last = facade.GetJobPostings().Result.LastOrDefault();
-            return last is null ? Task.CompletedTask : appFlow.ShowResults();
+            var postings = await facade.GetJobPostings();
+            var last = postings.LastOrDefault();
+            if(last is not null)
+            {
+                await appFlow.ShowResults();
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
