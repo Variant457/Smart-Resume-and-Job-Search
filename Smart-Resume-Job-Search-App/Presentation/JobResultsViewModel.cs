@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using Smart_Resume_Job_Search_App.Data;
 using Smart_Resume_Job_Search_App.AppServices;
+using Smart_Resume_Job_Search_App.UINav;
 
 namespace Smart_Resume_Job_Search_App.Presentation
 {
@@ -9,12 +10,15 @@ namespace Smart_Resume_Job_Search_App.Presentation
     {
         public ObservableCollection<JobPosting> Jobs { get; } = new();
         public ICommand OpenJobCommand { get; }
+        public ICommand BackCommand { get; }
 
         private readonly ApplicationFacade facade;
+        private readonly IAppFlow appFlow;
 
-        public JobResultsViewModel(ApplicationFacade facade)
+        public JobResultsViewModel(ApplicationFacade facade, IAppFlow appFlow)
         {
             this.facade = facade;
+            this.appFlow = appFlow;
 
             OpenJobCommand = new Command<JobPosting>(async job =>
             {
@@ -22,6 +26,10 @@ namespace Smart_Resume_Job_Search_App.Presentation
 
                 await Launcher.OpenAsync(job.Url);
             });
+
+            BackCommand = new HomeViewModel.DelegateCommand(
+                async _ => await appFlow.BackToHome()
+            );
         }
 
         public async Task InitializeAsync()
