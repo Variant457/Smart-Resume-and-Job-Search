@@ -10,8 +10,9 @@ namespace Smart_Resume_Job_Search_App.UINav
         Task Start();
         Task StartSearch(InputBlob blob);
         Task ShowResults();
-        Task TailorResume(JobPosting job);
+        Task<TailoredResume?> TailorResume(JobPosting job);
         Task StartSearchFromLatestResume();
+        Task ShowTailoredResume(JobPosting job);
         Task BackToHome();
         Task BackToResults();
     }

@@ -47,19 +47,24 @@ namespace Smart_Resume_Job_Search_App.UINav
             return nav.ReplaceRoot<JobResultsViewModel>();
         }
 
-        public async Task TailorResume(JobPosting job)
+        public async Task<TailoredResume?> TailorResume(JobPosting job)
         {
             Debug.WriteLine("[AppCoordinator] TailorResume invoked");
             await nav.Show<LoadingViewModel>();
 
             try
             {
-                await facade.TailorResume(job);
+                var tailored = await facade.TailorResume(job);
+                return tailored;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[AppCoordinator] Error during resume tailoring: {ex}");
-                await nav.GoBack();
+                await Application.Current.MainPage.DisplayAlert(
+                    "Tailoring Failed",
+                    "There is a problem tailoring your resume. Please Try Again",
+                    "OK");
+                return null;
             }
             finally
             {
@@ -83,6 +88,26 @@ namespace Smart_Resume_Job_Search_App.UINav
                 await nav.GoBack();
             }
 
+        }
+
+        public async Task ShowTailoredResume(JobPosting job)
+        {
+            Debug.WriteLine("[AppCoordinator] ShowTailoredResume invoked");
+
+            var tailored = await facade.GetLatestTailoredResume(job.Id);
+            if (tailored == null)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Tailored Resume",
+                    "No tailored resume found for this job. Please tailor it first.",
+                    "OK");
+                return;
+            }
+
+            await nav.Show<TailoredResumeViewModel>((object)(Action<TailoredResumeViewModel>)(vm =>
+            {
+                vm.Initialize(tailored);
+            }));
         }
 
         public Task BackToHome()

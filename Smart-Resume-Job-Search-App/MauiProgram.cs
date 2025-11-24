@@ -69,10 +69,12 @@ namespace Smart_Resume_Job_Search_App
             services.AddTransient<HomeViewModel>();
             services.AddTransient<LoadingViewModel>();
             services.AddTransient<JobResultsViewModel>();
+            services.AddTransient<TailoredResumeViewModel>();
 
             services.AddTransient<HomeView>();
             services.AddTransient<LoadingView>();
             services.AddTransient<JobResultsView>();
+            services.AddTransient<TailoredResumeView>();
 
 #if DEBUG
             builder.Logging.AddDebug();

@@ -4,7 +4,7 @@ using Smart_Resume_Job_Search_App.Data;
 using Smart_Resume_Job_Search_App.AppServices;
 using Smart_Resume_Job_Search_App.UINav;
 using System.Diagnostics;
-using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace Smart_Resume_Job_Search_App.Presentation
 {
@@ -93,6 +93,7 @@ namespace Smart_Resume_Job_Search_App.Presentation
             TailorCommand = new Command(async () => await TailorAsync(), () => !IsBusy);
 
             ViewTailoredCommand = new Command(async () => await ViewAsync());
+
             DetermineStatus(existingTailored, latestParsed);
         }
 
@@ -133,12 +134,12 @@ namespace Smart_Resume_Job_Search_App.Presentation
             {
                 var latestParsed = await facade.GetLatestParsedResume();
                 Debug.WriteLine($"[JobItemViewModel] LatestParsed at {latestParsed.ParsedAt}");
-                await appFlow.TailorResume(Job);
-                Debug.WriteLine("[JobItemViewModel] appFlow.TailorResume completed");
-                var tailored = await facade.GetLatestTailoredResume(Job.Id);
+                var tailored = await appFlow.TailorResume(Job);
                 Debug.WriteLine(tailored == null
                     ? "[JobItemViewModel] GetLatestTailoredResume returned null"
                     : $"[JobItemViewModel] Tailored resume CreatedAt={tailored.CreatedAt}");
+
+                if(tailored == null) return;
 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
@@ -158,12 +159,21 @@ namespace Smart_Resume_Job_Search_App.Presentation
 
         private async Task ViewAsync()
         {
-            var tailored = await facade.GetLatestTailoredResume(Job.Id);
-            if (tailored != null)
+            await appFlow.ShowTailoredResume(Job);
+        }
+
+        public async Task SharedTailoredResume(TailoredResume tailored)
+        {
+            if (string.IsNullOrWhiteSpace(tailored.FileName) || !File.Exists(tailored.FileName))
             {
-                await Application.Current.MainPage.DisplayAlert("Tailored Resume",
-                    tailored.JsonResult.Substring(0, Math.Min(500, tailored.JsonResult.Length)) + "...", "OK");
+                return;
             }
+
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = $"Tailored Resume for {tailored.JobPosting?.Title ?? "Job"}",
+                File = new ShareFile(tailored.FileName)
+            });
         }
     }
 }
