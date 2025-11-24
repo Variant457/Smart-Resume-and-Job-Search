@@ -14,8 +14,6 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
         public string ExtractText(Domain.InputBlob blob)
         {
-            if (blob == null) throw new ArgumentNullException(nameof(blob));
-
             using var ms = new MemoryStream(blob.Content);
             using var wordDoc = WordprocessingDocument.Open(ms, false);
 

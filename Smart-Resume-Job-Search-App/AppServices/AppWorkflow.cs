@@ -115,16 +115,8 @@ namespace Smart_Resume_Job_Search_App.AppServices
         public async Task SearchJobs()
         {
             var parsed = await dbContext.LatestParsedResume.SingleOrDefaultAsync();
-            if(parsed == null)
-            {
-                Debug.WriteLine("[AppWorkflow] No parsed resume found for job search.");
-                return;
-            }
-
             Debug.WriteLine("[AppWorkflow] Starting job search based on parsed resume.");
-
             var postings = await jobSearchService.SearchAndStoreAsync(parsed);
-
             Debug.WriteLine($"[AppWorkflow] Job search completed. Found and stored {postings.Count} job postings.");
         } 
     }

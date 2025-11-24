@@ -93,17 +93,7 @@ namespace Smart_Resume_Job_Search_App.UINav
         public async Task ShowTailoredResume(JobPosting job)
         {
             Debug.WriteLine("[AppCoordinator] ShowTailoredResume invoked");
-
             var tailored = await facade.GetLatestTailoredResume(job.Id);
-            if (tailored == null)
-            {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Tailored Resume",
-                    "No tailored resume found for this job. Please tailor it first.",
-                    "OK");
-                return;
-            }
-
             await nav.Show<TailoredResumeViewModel>((object)(Action<TailoredResumeViewModel>)(vm =>
             {
                 vm.Initialize(tailored);

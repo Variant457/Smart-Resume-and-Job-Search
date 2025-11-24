@@ -10,9 +10,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             return blob.MimeType == "text/plain";
         }
         public string ExtractText(Domain.InputBlob blob)
-        {
-            if(blob == null) throw new ArgumentNullException(nameof(blob));
-            
+        {            
             Debug.WriteLine($"[TxtExtractor] Extracted text from TXT blob: {blob.FileName}, Size: {blob.SizeBytes / 1024} KB");
             return Encoding.UTF8.GetString(blob.Content);
         }
