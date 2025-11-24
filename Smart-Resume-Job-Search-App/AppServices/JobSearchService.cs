@@ -38,16 +38,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
             ParsedResumeRecord parsed,
             CancellationToken ct = default)
         {
-            if (parsed == null) throw new ArgumentNullException(nameof(parsed));
-
             Debug.WriteLine("[JobSearchService] SearchAndStoreAsync start");
-
-            if (string.IsNullOrWhiteSpace(_adzunaAppId) || string.IsNullOrWhiteSpace(_adzunaAppKey))
-            {
-                Debug.WriteLine("[JobSearchService] Aborting search – Adzuna credentials are missing.");
-                return Array.Empty<JobPosting>();
-            }
-
             var titles = GetRecommendedJobTitles(parsed);
             Debug.WriteLine($"[JobSearchService] Recommended job titles count: {titles.Count}");
 
@@ -123,9 +114,6 @@ namespace Smart_Resume_Job_Search_App.AppServices
 
         private static List<string> GetRecommendedJobTitles(ParsedResumeRecord parsed)
         {
-            if (string.IsNullOrWhiteSpace(parsed.RawJson))
-                return new List<string>();
-
             ParsedResumeForSearch? parsedData = null;
             try
             {
