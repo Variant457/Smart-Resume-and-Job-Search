@@ -56,7 +56,7 @@ namespace Smart_Resume_Job_Search_App.Presentation
             IsHistoryVisible = false;
 
             OpenHistoryCommand = new DelegateCommand(async _ => await OpenHistory(), _ => IsHistoryVisible);
-            StartJobSearchCommand = new DelegateCommand(async _ => await appFlow.ShowResults(), _ => IsJobSearchEnabled);
+            StartJobSearchCommand = new DelegateCommand(async _ => await appFlow.StartSearchFromLatestResume(), _ => IsJobSearchEnabled);
         }
 
         public void OnLoaded()

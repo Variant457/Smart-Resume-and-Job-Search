@@ -9,6 +9,7 @@ namespace Smart_Resume_Job_Search_App.Data
         public string SourceSha256 { get; set; } = null!;
         public string? Location { get; set; } = null!;
         public string RawJson { get; set; }
+        public string origMimeType { get; set; }
         public DateTime ParsedAt { get; set; }
     }
 
@@ -43,6 +44,9 @@ namespace Smart_Resume_Job_Search_App.Data
 
         public int ParsedResumeInfoId { get; set; }
         public ParsedResumeRecord? ParsedResumeRecord { get; set; }
+
+        public int JobPostingId { get; set; }
+        public JobPosting? JobPosting { get; set; }
 
         /// Where we stored this tailored resume (file name / path).
         public string FileName { get; set; } = string.Empty;

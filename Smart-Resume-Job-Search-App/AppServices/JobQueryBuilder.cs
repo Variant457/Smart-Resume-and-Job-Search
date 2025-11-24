@@ -79,7 +79,7 @@ namespace Smart_Resume_Job_Search_App.AppServices
         }
 
         /// Overload for ParsedResumeInfo (one title + location).
-        public string Build(ParsedResumeRecord parsed, string appId, string appKey, string jobTitle)
+        public string Build(ParsedResumeRecord parsed, string appId, string appKey, string jobTitle, int page=1, int resultsPerPage=5)
         {
             if (parsed == null)
                 throw new ArgumentNullException(nameof(parsed));
@@ -90,7 +90,9 @@ namespace Smart_Resume_Job_Search_App.AppServices
                 appId: appId,
                 appKey: appKey,
                 location: location,
-                jobTitle: jobTitle
+                jobTitle: jobTitle,
+                resultsPerPage: resultsPerPage,
+                page: page
             );
         }
     }

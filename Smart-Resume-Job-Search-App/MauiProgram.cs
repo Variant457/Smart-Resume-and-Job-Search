@@ -8,8 +8,6 @@ using System.Diagnostics;
 using Smart_Resume_Job_Search_App.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http;
 
 namespace Smart_Resume_Job_Search_App
 {
@@ -64,16 +62,19 @@ namespace Smart_Resume_Job_Search_App
             services.AddSingleton<ITextExtractor, TxtExtractor>();
             services.AddSingleton<ITextExtractor, DocxExtractor>();
             services.AddSingleton<ITextExtractor, PdfExtractor>();
+            services.AddSingleton<ResumeTailoringService>();
 
-          
+
             // ViewModels
             services.AddTransient<HomeViewModel>();
             services.AddTransient<LoadingViewModel>();
             services.AddTransient<JobResultsViewModel>();
+            services.AddTransient<TailoredResumeViewModel>();
 
             services.AddTransient<HomeView>();
             services.AddTransient<LoadingView>();
             services.AddTransient<JobResultsView>();
+            services.AddTransient<TailoredResumeView>();
 
 #if DEBUG
             builder.Logging.AddDebug();
@@ -94,6 +95,7 @@ namespace Smart_Resume_Job_Search_App
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.EnsureDeleted(); // For development only: reset DB on each app start
                 db.Database.EnsureCreated();
             }
 
